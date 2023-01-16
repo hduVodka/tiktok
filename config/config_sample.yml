@@ -1,0 +1,5 @@
+server:
+  mysql_source: root@localhost/tiktok
+  port: 25010
+  
+# redis_source: localhost:6379
