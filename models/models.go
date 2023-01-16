@@ -9,11 +9,12 @@ import (
 
 var db *gorm.DB
 
-func Init() {
+func Init() *gorm.DB {
 	source := config.Conf.GetString("server.mysql_source")
 	database, err := gorm.Open(mysql.Open(source), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("fail to connect mysql:%v", err)
 	}
 	db = database
+	return database
 }

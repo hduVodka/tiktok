@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"tiktok/config"
+	"tiktok/controller"
 	"tiktok/log"
 	"tiktok/models"
 )
@@ -13,7 +14,7 @@ func main() {
 	models.Init()
 
 	e := gin.Default()
-	initRouter(e)
+	controller.InitRouter(e)
 	// run message websocket server
 	err := e.Run(":" + config.Conf.GetString("server.port"))
 	if err != nil {
