@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"net/http"
 	"tiktok/helper"
@@ -34,7 +33,7 @@ func Register(c *gin.Context) {
 	}
 
 	// hash password 存入的是加密的密码
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword := helper.Md5(user.Password)
 	user.Password = string(hashedPassword)
 
 	// Insert user into the database
