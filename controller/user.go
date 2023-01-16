@@ -50,5 +50,20 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
+	user := new(models.User)
+	userExist := new(models.User)
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
+	db := models.Init()
+	// 查找用户
+	if db.Where("username = ? AND password = ?", user.Username, helper.Md5(user.Password)).First(&userExist).Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在或密码错误"})
+		return
+	} else {
+		token, _ := helper.GenerateToken(user.Username, helper.Md5(user.Password)) // 生成token
+		c.JSON(http.StatusOK, gin.H{"user_id": user.ID, "token": token})
+	}
 }
