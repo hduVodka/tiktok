@@ -40,5 +40,6 @@ func SearchUser(user *models.User) (bool, error) {
 	if db.Where("username = ? AND password = ?", user.Username, utils.SHA256(user.Password)).First(&userExist).Error != nil {
 		return false, errors.New("用户不存在或密码错误")
 	}
+	user.ID = userExist.ID
 	return true, nil
 }
