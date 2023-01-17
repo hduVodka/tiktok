@@ -16,5 +16,8 @@ func Init() *gorm.DB {
 		log.Fatalf("fail to connect mysql:%v", err)
 	}
 	db = database
+	if err := db.AutoMigrate(&User{}, &Video{}); err != nil {
+		log.Fatalf("fail to migrate models:%v", err)
+	}
 	return database
 }

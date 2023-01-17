@@ -1,13 +1,51 @@
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"strconv"
+	"tiktok/dto"
+	"tiktok/service/video"
+	"time"
+)
 
 type FeedResp struct {
 	Resp
-	VideoList []Video `json:"videoList,omitempty"`
-	NextTime  int64   `json:"nextTime,omitempty"`
+	VideoList []dto.Video `json:"videoList,omitempty"`
+	NextTime  int64       `json:"nextTime,omitempty"`
 }
 
 func Feed(c *gin.Context) {
+	var latestTime time.Time
+	unix, err := strconv.ParseInt(c.Query("latest_time"), 10, 64)
+	if err != nil {
+		c.JSON(400, Resp{
+			StatusCode: 400,
+			StatusMsg:  ErrInvalidParams,
+		})
+		return
+	}
 
+	if unix != 0 {
+		latestTime = time.Unix(unix, 0)
+	} else {
+		latestTime = time.Now()
+	}
+
+	list, nextTime, err := video.GetFeed(c, latestTime)
+	if err != nil {
+		c.JSON(500, Resp{
+			StatusCode: 500,
+			StatusMsg:  fmt.Sprintf("internal server error:%v", err),
+		})
+		return
+	}
+	c.JSON(200, FeedResp{
+		Resp: Resp{
+			StatusCode: 200,
+			StatusMsg:  "ok",
+		},
+		VideoList: list,
+		NextTime:  nextTime.Unix(),
+	})
 }

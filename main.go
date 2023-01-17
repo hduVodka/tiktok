@@ -15,7 +15,9 @@ func main() {
 
 	e := gin.Default()
 	controller.InitRouter(e)
-	// run message websocket server
+
+	//todo: run message websocket server here
+
 	err := e.Run(":" + config.Conf.GetString("server.port"))
 	if err != nil {
 		log.Fatal(err)
