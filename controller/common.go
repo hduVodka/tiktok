@@ -1,8 +1,8 @@
 package controller
 
 type Resp struct {
-	StatusCode int    `json:"statusCode"`
-	StatusMsg  string `json:"statusMsg,omitempty"`
+	StatusCode int    `json:"status_code"`
+	StatusMsg  string `json:"status_msg,omitempty"`
 }
 
 var ErrInvalidParams = "invalid params"
