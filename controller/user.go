@@ -2,12 +2,18 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"sync"
 	"tiktok/db"
 	"tiktok/models"
 	"tiktok/service/auth"
 	"tiktok/utils"
 )
+
+type UserResp struct {
+	Resp
+	Token   string `json:"token,omitempty"`
+	User_id int64  `json:"user_id,omitempty"`
+}
 
 func UserInfo(c *gin.Context) {
 
@@ -15,49 +21,87 @@ func UserInfo(c *gin.Context) {
 
 func Register(c *gin.Context) {
 
+	var mu sync.Mutex
+	mu.Lock()
+	defer mu.Unlock()
+
 	user := new(models.User)
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+	if err := c.ShouldBindQuery(&user); err != nil {
+		c.JSON(400, Resp{
+			StatusCode: 400,
+			StatusMsg:  ErrInvalidParams,
+		})
+		return
+	}
+
+	// 用户名密码合法性检查
+	if !auth.CheckLegal(user) {
+		c.JSON(400, Resp{
+			StatusCode: 400,
+			StatusMsg:  ErrFormatError,
+		})
 		return
 	}
 
 	// check username
-	if ok, err := db.CheckUsername(user); !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if !db.CheckUsername(user) {
+		c.JSON(400, Resp{
+			StatusCode: 400,
+			StatusMsg:  ErrUserAlreadyExist,
+		})
 		return
 	}
 
-	// 加密密码
-	auth.Encrypt(user)
-
-	// Insert user into the database
-	err := db.InsertNewUser(user)
+	// 加密密码,同时创建生成salt，并入库
+	err := db.InsertNewUser(auth.Encrypt(user))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(400, Resp{
+			StatusCode: 400,
+			StatusMsg:  ErrInsertFailed,
+		})
 		return
 	}
 
-	// 调用utils中的GenerateToken方法生成token
-	token, _ := utils.GenerateToken(user)
-
-	// 返回数据
-	c.JSON(http.StatusOK, gin.H{"user_id": user.ID, "token": token})
+	// 返回id和token
+	c.JSON(200, UserResp{
+		Resp: Resp{
+			StatusCode: 200,
+			StatusMsg:  "register success",
+		},
+		User_id: user.ID,
+		Token:   utils.GenerateToken(user),
+	})
 }
 
 func Login(c *gin.Context) {
+
 	user := new(models.User)
 
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := c.ShouldBindQuery(&user); err != nil {
+		c.JSON(400, Resp{
+			StatusCode: 400,
+			StatusMsg:  ErrInvalidParams,
+		})
 		return
 	}
 
 	// 查找用户,若存在则返回token
-	if ok, err := db.SearchUser(user); !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if !db.SearchUser(user) {
+		c.JSON(400, Resp{
+			StatusCode: 400,
+			StatusMsg:  ErrIcorrectPassword,
+		})
 		return
-	} else {
-		token, _ := utils.GenerateToken(user) // 生成token
-		c.JSON(http.StatusOK, gin.H{"user_id": user.ID, "token": token})
 	}
+
+	// 返回id和token
+	c.JSON(200, UserResp{
+		Resp: Resp{
+			StatusCode: 200,
+			StatusMsg:  "login success",
+		},
+		User_id: user.ID,
+		Token:   utils.GenerateToken(user),
+	})
 }
