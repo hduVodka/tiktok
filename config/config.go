@@ -20,7 +20,7 @@ func Init() {
 	Conf.AddConfigPath(".")
 	if err := Conf.ReadInConfig(); err != nil {
 		if _, ok := err.(vp.ConfigFileNotFoundError); ok {
-			if err := os.WriteFile("./config.yaml", defaultConfig, 0666); err != nil {
+			if err := os.WriteFile("./config.yml", defaultConfig, 0666); err != nil {
 				log.Fatalf("fail to write config:%v", err)
 			}
 			_ = Conf.ReadConfig(bytes.NewReader(defaultConfig))
