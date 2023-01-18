@@ -38,3 +38,13 @@ func InsertVideo(video *Video) error {
 	}
 	return nil
 }
+
+func GetVideoListById(id uint) ([]Video, error) {
+	var list []Video
+	res := db.Where("author_id=?", id).Find(&list)
+	if res.Error != nil {
+		log.Errorf("get video list fail:%v", res.Error)
+		return nil, ErrDatabase
+	}
+	return list, nil
+}

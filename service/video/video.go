@@ -19,25 +19,21 @@ func GetFeed(ctx context.Context, latestTime time.Time) ([]dto.Video, time.Time,
 		return nil, time.Now(), err
 	}
 
-	oldest := time.Now()
-	res := make([]dto.Video, len(videos))
-	for i, v := range videos {
-		// todo cache favorite and comment count
-		res[i] = dto.Video{
-			Id:            v.ID,
-			Author:        dto.User{},
-			PlayUrl:       v.PlayUrl,
-			CoverUrl:      v.CoverUrl,
-			FavoriteCount: 0,
-			CommentCount:  0,
-			IsFavorite:    0,
-			Title:         v.Title,
-		}
-		if i == len(videos)-1 {
-			oldest = v.CreatedAt
-		}
+	var userId uint
+	if ctx.Value("userId") != nil {
+		userId = 0
 	}
-	return nil, oldest, nil
+	userId = ctx.Value("userId").(uint)
+
+	oldest := time.Now()
+	res, err := modelVideos2dtoVideos(userId, videos)
+	if err != nil {
+		return nil, time.Now(), err
+	}
+
+	oldest = videos[len(videos)-1].CreatedAt
+
+	return res, oldest, nil
 }
 
 func Publish(ctx context.Context, file multipart.File, title string) error {
@@ -77,4 +73,31 @@ func Publish(ctx context.Context, file multipart.File, title string) error {
 	}
 
 	return nil
+}
+
+func PublishList(c context.Context) ([]dto.Video, error) {
+	var userId = c.Value("userId").(uint)
+	videos, err := models.GetVideoListById(userId)
+	if err != nil {
+		return nil, err
+	}
+	return modelVideos2dtoVideos(userId, videos)
+}
+
+func modelVideos2dtoVideos(userId uint, videos []models.Video) ([]dto.Video, error) {
+	res := make([]dto.Video, len(videos))
+	for i, v := range videos {
+		// todo: cache favorite and comment count
+		res[i] = dto.Video{
+			Id:            v.ID,
+			Author:        dto.User{},
+			PlayUrl:       v.PlayUrl,
+			CoverUrl:      v.CoverUrl,
+			FavoriteCount: 0,
+			CommentCount:  0,
+			IsFavorite:    0,
+			Title:         v.Title,
+		}
+	}
+	return res, nil
 }

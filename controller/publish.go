@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"tiktok/dto"
 	"tiktok/log"
 	"tiktok/service/video"
 )
+
+type PublishListResp struct {
+	Resp
+	VideoList []dto.Video `json:"videoList,omitempty"`
+}
 
 func Publish(c *gin.Context) {
 	fh, err := c.FormFile("data")
@@ -58,5 +64,21 @@ func Publish(c *gin.Context) {
 }
 
 func PublishList(c *gin.Context) {
+	videos, err := video.PublishList(c)
+	if err != nil {
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
+			StatusMsg:  fmt.Sprintf("internal server error:%v", err),
+		})
+		log.Error(err)
+		return
+	}
 
+	c.JSON(http.StatusOK, PublishListResp{
+		Resp: Resp{
+			StatusCode: 0,
+			StatusMsg:  "ok",
+		},
+		VideoList: videos,
+	})
 }
