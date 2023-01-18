@@ -8,5 +8,5 @@ type Resp struct {
 var ErrInvalidParams = "invalid params"
 var ErrUserAlreadyExist = "user already exist"
 var ErrInsertFailed = "insert failed"
-var ErrIcorrectPassword = "incorrect password"
+var ErrIncorrectPassword = "incorrect password"
 var ErrFormatError = "format error"

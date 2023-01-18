@@ -9,11 +9,10 @@ import (
 
 type Video struct {
 	gorm.Model
-	AuthorId   uint
-	Title      string
-	PlayUrl    string
-	CoverUrl   string
-	UploadTime int64
+	AuthorId uint
+	Title    string
+	PlayUrl  string
+	CoverUrl string
 }
 
 func GetFeedByTime(t time.Time) ([]Video, error) {
@@ -29,4 +28,13 @@ func GetFeedByTime(t time.Time) ([]Video, error) {
 		return nil, ErrDatabase
 	}
 	return list, nil
+}
+
+func InsertVideo(video *Video) error {
+	res := db.Save(video)
+	if res.Error != nil {
+		log.Errorf("insert video fail:%v", res.Error)
+		return ErrDatabase
+	}
+	return nil
 }

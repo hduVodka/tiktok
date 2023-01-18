@@ -90,7 +90,7 @@ func Login(c *gin.Context) {
 	if !db.SearchUser(user) {
 		c.JSON(400, Resp{
 			StatusCode: 400,
-			StatusMsg:  ErrIcorrectPassword,
+			StatusMsg:  ErrIncorrectPassword,
 		})
 		return
 	}
