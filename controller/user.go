@@ -28,8 +28,8 @@ func Register(c *gin.Context) {
 	user := new(models.User)
 
 	if err := c.ShouldBindQuery(&user); err != nil {
-		c.JSON(400, Resp{
-			StatusCode: 400,
+		c.JSON(200, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrInvalidParams,
 		})
 		return
@@ -37,8 +37,8 @@ func Register(c *gin.Context) {
 
 	// 用户名密码合法性检查
 	if !auth.CheckLegal(user) {
-		c.JSON(400, Resp{
-			StatusCode: 400,
+		c.JSON(200, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrFormatError,
 		})
 		return
@@ -46,8 +46,8 @@ func Register(c *gin.Context) {
 
 	// check username
 	if !db.CheckUsername(user) {
-		c.JSON(400, Resp{
-			StatusCode: 400,
+		c.JSON(200, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrUserAlreadyExist,
 		})
 		return
@@ -56,8 +56,8 @@ func Register(c *gin.Context) {
 	// 加密密码,同时创建生成salt，并入库
 	err := db.InsertNewUser(auth.Encrypt(user))
 	if err != nil {
-		c.JSON(400, Resp{
-			StatusCode: 400,
+		c.JSON(200, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrInsertFailed,
 		})
 		return
@@ -66,7 +66,7 @@ func Register(c *gin.Context) {
 	// 返回id和token
 	c.JSON(200, UserResp{
 		Resp: Resp{
-			StatusCode: 200,
+			StatusCode: 0,
 			StatusMsg:  "register success",
 		},
 		UserId: user.ID,
@@ -79,8 +79,8 @@ func Login(c *gin.Context) {
 	user := new(models.User)
 
 	if err := c.ShouldBindQuery(&user); err != nil {
-		c.JSON(400, Resp{
-			StatusCode: 400,
+		c.JSON(200, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrInvalidParams,
 		})
 		return
@@ -88,8 +88,8 @@ func Login(c *gin.Context) {
 
 	// 查找用户,若存在则返回token
 	if !db.SearchUser(user) {
-		c.JSON(400, Resp{
-			StatusCode: 400,
+		c.JSON(200, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrIncorrectPassword,
 		})
 		return
@@ -98,7 +98,7 @@ func Login(c *gin.Context) {
 	// 返回id和token
 	c.JSON(200, UserResp{
 		Resp: Resp{
-			StatusCode: 200,
+			StatusCode: 0,
 			StatusMsg:  "login success",
 		},
 		UserId: user.ID,
