@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strconv"
 	"tiktok/dto"
 	"tiktok/service/video"
@@ -19,8 +20,8 @@ func Feed(c *gin.Context) {
 	var latestTime time.Time
 	unix, err := strconv.ParseInt(c.Query("latest_time"), 10, 64)
 	if err != nil {
-		c.JSON(400, Resp{
-			StatusCode: 400,
+		c.JSON(http.StatusBadRequest, Resp{
+			StatusCode: http.StatusBadRequest,
 			StatusMsg:  ErrInvalidParams,
 		})
 		return
@@ -34,15 +35,15 @@ func Feed(c *gin.Context) {
 
 	list, nextTime, err := video.GetFeed(c, latestTime)
 	if err != nil {
-		c.JSON(500, Resp{
-			StatusCode: 500,
+		c.JSON(http.StatusInternalServerError, Resp{
+			StatusCode: http.StatusInternalServerError,
 			StatusMsg:  fmt.Sprintf("internal server error:%v", err),
 		})
 		return
 	}
-	c.JSON(200, FeedResp{
+	c.JSON(http.StatusOK, FeedResp{
 		Resp: Resp{
-			StatusCode: 200,
+			StatusCode: http.StatusOK,
 			StatusMsg:  "ok",
 		},
 		VideoList: list,

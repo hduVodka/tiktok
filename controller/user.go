@@ -11,8 +11,8 @@ import (
 
 type UserResp struct {
 	Resp
-	Token   string `json:"token,omitempty"`
-	User_id int64  `json:"user_id,omitempty"`
+	Token  string `json:"token,omitempty"`
+	UserId int64  `json:"user_id,omitempty"`
 }
 
 func UserInfo(c *gin.Context) {
@@ -69,8 +69,8 @@ func Register(c *gin.Context) {
 			StatusCode: 200,
 			StatusMsg:  "register success",
 		},
-		User_id: user.ID,
-		Token:   utils.GenerateToken(user),
+		UserId: user.ID,
+		Token:  utils.GenerateToken(user),
 	})
 }
 
@@ -101,7 +101,7 @@ func Login(c *gin.Context) {
 			StatusCode: 200,
 			StatusMsg:  "login success",
 		},
-		User_id: user.ID,
-		Token:   utils.GenerateToken(user),
+		UserId: user.ID,
+		Token:  utils.GenerateToken(user),
 	})
 }
