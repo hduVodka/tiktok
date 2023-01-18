@@ -20,8 +20,8 @@ func Feed(c *gin.Context) {
 	var latestTime time.Time
 	unix, err := strconv.ParseInt(c.Query("latest_time"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Resp{
-			StatusCode: http.StatusBadRequest,
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrInvalidParams,
 		})
 		return
@@ -35,15 +35,15 @@ func Feed(c *gin.Context) {
 
 	list, nextTime, err := video.GetFeed(c, latestTime)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, Resp{
-			StatusCode: http.StatusInternalServerError,
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
 			StatusMsg:  fmt.Sprintf("internal server error:%v", err),
 		})
 		return
 	}
 	c.JSON(http.StatusOK, FeedResp{
 		Resp: Resp{
-			StatusCode: http.StatusOK,
+			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
 		VideoList: list,

@@ -11,8 +11,8 @@ import (
 func Publish(c *gin.Context) {
 	fh, err := c.FormFile("data")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Resp{
-			StatusCode: http.StatusBadRequest,
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrInvalidParams,
 		})
 		log.Error(err)
@@ -21,8 +21,8 @@ func Publish(c *gin.Context) {
 
 	title, existed := c.GetPostForm("title")
 	if !existed {
-		c.JSON(http.StatusBadRequest, Resp{
-			StatusCode: http.StatusBadRequest,
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrInvalidParams,
 		})
 		log.Error(err)
@@ -33,8 +33,8 @@ func Publish(c *gin.Context) {
 
 	file, err := fh.Open()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Resp{
-			StatusCode: http.StatusBadRequest,
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
 			StatusMsg:  ErrInvalidParams,
 		})
 		log.Error(err)
@@ -43,8 +43,8 @@ func Publish(c *gin.Context) {
 	defer file.Close()
 
 	if err := video.Publish(c, file, title); err != nil {
-		c.JSON(http.StatusInternalServerError, Resp{
-			StatusCode: http.StatusInternalServerError,
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
 			StatusMsg:  fmt.Sprintf("internal server error:%v", err),
 		})
 		log.Error(err)
@@ -52,7 +52,7 @@ func Publish(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, Resp{
-		StatusCode: http.StatusOK,
+		StatusCode: 0,
 		StatusMsg:  "ok",
 	})
 }
