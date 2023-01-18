@@ -2,12 +2,11 @@ package interactive
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"tiktok/models"
 )
 
-func FavoriteAction(c *gin.Context, favorite *models.Favorite, actionType int) (int, error) {
+func FavoriteAction(favorite *models.Favorite, actionType int) (int, error) {
 	var exist bool
 	// 执行点赞或取消点赞操作
 	if actionType == 1 {
@@ -36,7 +35,7 @@ func FavoriteAction(c *gin.Context, favorite *models.Favorite, actionType int) (
 	}
 }
 
-func FavoriteList(c *gin.Context, favorite *models.Favorite) ([]models.Video, error) {
+func FavoriteList(favorite *models.Favorite) ([]models.Video, error) {
 	var videoList []models.Video
 	var err error
 

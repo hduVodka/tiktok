@@ -48,7 +48,7 @@ func FavoriteAction(c *gin.Context) {
 		UserID:  userID.(uint),
 	}
 
-	if code, err := interactive.FavoriteAction(c, favorite, actionType); err != nil {
+	if code, err := interactive.FavoriteAction(favorite, actionType); err != nil {
 		c.JSON(code, gin.H{
 			"status_code": code,
 			"status_msg":  err.Error(),
@@ -77,7 +77,7 @@ func FavoriteList(c *gin.Context) {
 		UserID: userID.(uint),
 	}
 
-	if videoList, err := interactive.FavoriteList(c, favorite); err != nil {
+	if videoList, err := interactive.FavoriteList(favorite); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status_code": 500,
 			"status_msg":  "获取点赞列表失败",
