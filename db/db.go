@@ -27,6 +27,10 @@ func CheckUsername(user *models.User) bool {
 }
 
 func InsertNewUser(user *models.User) error {
+	// 清除意外数据
+	user.FollowerCount = 0
+	user.FollowCount = 0
+	user.IsFollow = false
 	db := models.Init()
 	if err := db.Create(&user).Error; err != nil {
 		return errors.New("插入用户数据失败")

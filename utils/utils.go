@@ -52,3 +52,26 @@ func GenerateSalt() string {
 	}
 	return code
 }
+
+// 检验token
+func CheckToken(userId int64, tokenString string) bool {
+	var userExist models.User
+	db := models.Init()
+	if err := db.Where("id = ?", userId).First(&userExist).Error; err != nil {
+		return false
+	}
+	tokenRight := GenerateToken(&userExist)
+	if tokenRight != tokenString {
+		return false
+	}
+	return true
+}
+
+// 查找userInfo
+func FindUserInfo(userId int64, user *models.User) bool {
+	db := models.Init()
+	if err := db.Where("id = ?", userId).First(&user).Error; err != nil {
+		return false
+	}
+	return true
+}

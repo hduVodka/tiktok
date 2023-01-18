@@ -15,8 +15,36 @@ type UserResp struct {
 	UserId int64  `json:"user_id,omitempty"`
 }
 
-func UserInfo(c *gin.Context) {
+type UserInfoResp struct {
+	StatusCode int64  `json:"status_code"`
+	StatusMsg  string `json:"status_msg"`
+	User       User   `json:"user"`
+}
 
+type User struct {
+	FollowCount   int64  `json:"follow_count"`
+	FollowerCount int64  `json:"follower_count"`
+	ID            int64  `json:"id"`
+	IsFollow      bool   `json:"is_follow"`
+	Name          string `json:"name"`
+}
+
+func UserInfo(c *gin.Context) {
+	userId := c.Keys["userId"].(int64)
+	user := new(models.User)
+	if utils.FindUserInfo(userId, user) {
+		c.JSON(200, UserInfoResp{
+			StatusCode: 0,
+			StatusMsg:  "success",
+			User: User{
+				ID:            user.ID,
+				Name:          user.Username,
+				FollowerCount: user.FollowerCount,
+				FollowCount:   user.FollowCount,
+				IsFollow:      user.IsFollow,
+			},
+		})
+	}
 }
 
 func Register(c *gin.Context) {

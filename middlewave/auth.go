@@ -2,11 +2,18 @@ package middlewave
 
 import (
 	"github.com/gin-gonic/gin"
+	"strconv"
+	"tiktok/utils"
 )
 
 func Auth(c *gin.Context) {
-	// todo:鉴权中间件
-	// 鉴权完成后将userid写入上下文
-	// 未通过则打回
-	c.Set("userId", 1)
+	tokenString := c.Query("token")
+	userIdStr := c.Query("user_id")
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	if utils.CheckToken(userId, tokenString) {
+		c.Set("userId", userId)
+		c.Next()
+	} else {
+		c.Abort()
+	}
 }
