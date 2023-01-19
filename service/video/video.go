@@ -23,8 +23,10 @@ func GetFeed(ctx context.Context, latestTime time.Time) ([]dto.Video, time.Time,
 	if ctx.Value("userId") != nil {
 		userId = 0
 	}
-	userId = ctx.Value("userId").(uint)
-
+	userId, ok := ctx.Value("userId").(uint)
+	if !ok {
+		userId = 0
+	}
 	oldest := time.Now()
 	res, err := modelVideos2dtoVideos(userId, videos)
 	if err != nil {

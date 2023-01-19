@@ -29,7 +29,7 @@ type User struct {
 }
 
 func UserInfo(c *gin.Context) {
-	userId := c.Keys["userId"].(int64)
+	userId := c.Keys["userId"].(uint)
 	user := new(models.User)
 	if utils.FindUserInfo(userId, user) {
 		c.JSON(200, UserInfoResp{

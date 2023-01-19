@@ -68,7 +68,7 @@ func CheckToken(userId int64, tokenString string) bool {
 }
 
 // 查找userInfo
-func FindUserInfo(userId int64, user *models.User) bool {
+func FindUserInfo(userId uint, user *models.User) bool {
 	db := models.Init()
 	if err := db.Where("id = ?", userId).First(&user).Error; err != nil {
 		return false
