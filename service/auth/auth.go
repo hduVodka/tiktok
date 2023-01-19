@@ -6,10 +6,19 @@ import (
 	"tiktok/utils"
 )
 
+// 密码加盐生成
 func Encrypt(user *models.User) *models.User {
 	user.Salt = utils.GenerateSalt()
 	hashedPassword := utils.SHA256(user.Password, user.Salt)
-	user.Password = string(hashedPassword)
+	user.Password = hashedPassword
+	return user
+}
+
+// 根据已有盐和明文密码生成加密密码
+func EncryptPassword(user *models.User, salt string) *models.User {
+	user.Salt = salt
+	hashedPassword := utils.SHA256(user.Password, user.Salt)
+	user.Password = hashedPassword
 	return user
 }
 
