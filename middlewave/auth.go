@@ -14,9 +14,9 @@ type Resp struct {
 func Auth(c *gin.Context) {
 	tokenString := c.Query("token")
 	userIdStr := c.Query("user_id")
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	if utils.CheckToken(userId, tokenString) {
-		c.Set("userId", userId)
+	userId, _ := strconv.ParseUint(userIdStr, 10, 64)
+	if utils.CheckToken(int64(userId), tokenString) {
+		c.Set("userId", uint(userId))
 		c.Next()
 	} else {
 		c.JSON(200, Resp{
