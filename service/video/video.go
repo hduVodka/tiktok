@@ -8,13 +8,14 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"tiktok/db"
 	"tiktok/dto"
 	"tiktok/models"
 	"time"
 )
 
 func GetFeed(ctx context.Context, latestTime time.Time) ([]dto.Video, time.Time, error) {
-	videos, err := models.GetFeedByTime(latestTime)
+	videos, err := db.GetFeedByTime(latestTime)
 	if err != nil {
 		return nil, time.Now(), err
 	}
@@ -69,7 +70,7 @@ func Publish(ctx context.Context, file multipart.File, title string) error {
 		PlayUrl:  videoPath,
 		CoverUrl: coverPath,
 	}
-	err = models.InsertVideo(video)
+	err = db.InsertVideo(video)
 	if err != nil {
 		return err
 	}
@@ -79,7 +80,7 @@ func Publish(ctx context.Context, file multipart.File, title string) error {
 
 func PublishList(c context.Context) ([]dto.Video, error) {
 	var userId = c.Value("userId").(uint)
-	videos, err := models.GetVideoListById(userId)
+	videos, err := db.GetVideoListById(userId)
 	if err != nil {
 		return nil, err
 	}
