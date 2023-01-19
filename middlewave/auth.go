@@ -6,6 +6,11 @@ import (
 	"tiktok/utils"
 )
 
+type Resp struct {
+	StatusCode int    `json:"status_code"`
+	StatusMsg  string `json:"status_msg,omitempty"`
+}
+
 func Auth(c *gin.Context) {
 	tokenString := c.Query("token")
 	userIdStr := c.Query("user_id")
@@ -14,6 +19,10 @@ func Auth(c *gin.Context) {
 		c.Set("userId", userId)
 		c.Next()
 	} else {
+		c.JSON(200, Resp{
+			StatusCode: -1,
+			StatusMsg:  "unauthorized",
+		})
 		c.Abort()
 	}
 }
