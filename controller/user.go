@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"sync"
+	"tiktok/db"
 	"tiktok/models"
 	"tiktok/service/auth"
 	"tiktok/utils"
@@ -72,7 +73,7 @@ func Register(c *gin.Context) {
 	}
 
 	// check username
-	if err := models.CheckUsername(user); err != nil {
+	if !db.CheckUsername(user) {
 		c.JSON(200, Resp{
 			StatusCode: -1,
 			StatusMsg:  ErrUserAlreadyExist,
@@ -81,7 +82,7 @@ func Register(c *gin.Context) {
 	}
 
 	// 加密密码,同时创建生成salt，并入库
-	err := models.InsertUser(auth.Encrypt(user))
+	err := db.InsertNewUser(auth.Encrypt(user))
 	if err != nil {
 		c.JSON(200, Resp{
 			StatusCode: -1,
@@ -114,16 +115,7 @@ func Login(c *gin.Context) {
 	}
 
 	// 查找用户,若存在则返回token
-	userExist, err := models.SearchUser(user)
-	if err != nil {
-		c.JSON(200, Resp{
-			StatusCode: -1,
-			StatusMsg:  ErrUserNotFound,
-		})
-		return
-	}
-
-	if utils.GenerateToken(auth.EncryptPassword(user, userExist.Salt)) != utils.GenerateToken(userExist) {
+	if !db.SearchUser(user) {
 		c.JSON(200, Resp{
 			StatusCode: -1,
 			StatusMsg:  ErrIncorrectPassword,
