@@ -17,7 +17,7 @@ func Init() {
 	if ffmpegPath == "" {
 		ffmpegPath = "ffmpeg"
 	}
-	out := exec.Command(ffmpegPath)
+	out := exec.Command(ffmpegPath, "-version")
 	_, err := out.CombinedOutput()
 	if err != nil {
 		log.Fatalln("ffmpeg is not existed, please install ffmpeg first")
