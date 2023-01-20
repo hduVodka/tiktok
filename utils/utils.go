@@ -6,7 +6,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"math/rand"
 	"tiktok/config"
-	"time"
 )
 
 // sha256加密
@@ -39,17 +38,23 @@ func GenerateToken(id uint) string {
 }
 
 // 生成随机salt
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+)
+
 func GenerateSalt() string {
-	s := "1234567890"
-	code := ""
-	rand.Seed(time.Now().UnixNano())
-	for i := 0; i < 8; i++ {
-		code += string(s[rand.Intn(len(s))])
+	b := make([]byte, 8)
+	for i := 0; i < 8; {
+		if idx := int(rand.Int63() & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i++
+		}
 	}
-	return code
+	return string(b)
 }
 
-// todo: 修复下面的函数，jwt请使用jwt的方式校验
 // 检验token
 func CheckToken(userID uint, tokenString string) bool {
 	if tokenString == GenerateToken(userID) {

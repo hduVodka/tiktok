@@ -4,6 +4,11 @@ server:
   host: "localhost:25010"
 # redis_source: localhost:6379
 
+auth:
+  # define the secret key
+  jwt_key: ""
+
+
 video:
   # left it empty to get from path
   ffmpeg: ""
