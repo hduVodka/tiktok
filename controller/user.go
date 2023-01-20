@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"sync"
 	"tiktok/db"
+	"tiktok/dto"
 	"tiktok/models"
 	"tiktok/service/auth"
 	"tiktok/utils"
@@ -11,36 +12,28 @@ import (
 
 type UserResp struct {
 	Resp
-	Token  string `json:"token,omitempty"`
-	UserId int64  `json:"user_id,omitempty"`
+	Token string `json:"token,omitempty"`
+	Id    uint   `json:"user_id,omitempty"`
 }
 
 type UserInfoResp struct {
-	StatusCode int64  `json:"status_code"`
-	StatusMsg  string `json:"status_msg"`
-	User       User   `json:"user"`
-}
-
-type User struct {
-	FollowCount   int64  `json:"follow_count"`
-	FollowerCount int64  `json:"follower_count"`
-	ID            int64  `json:"id"`
-	IsFollow      bool   `json:"is_follow"`
-	Name          string `json:"name"`
+	StatusCode int64    `json:"status_code"`
+	StatusMsg  string   `json:"status_msg"`
+	User       dto.User `json:"user"`
 }
 
 func UserInfo(c *gin.Context) {
 	userId := c.Keys["userId"].(uint)
-	if user, err := db.FindUserInfoByUserId(userId); err != nil {
+	user := new(models.User)
+	if db.FindUserInfo(userId, user) {
 		c.JSON(200, UserInfoResp{
 			StatusCode: 0,
 			StatusMsg:  "success",
-			User: User{
-				ID:            user.ID,
+			User: dto.User{
+				Id:            user.ID,
 				Name:          user.Username,
 				FollowerCount: user.FollowerCount,
 				FollowCount:   user.FollowCount,
-				IsFollow:      user.IsFollow,
 			},
 		})
 	}
@@ -53,14 +46,9 @@ func Register(c *gin.Context) {
 	defer mu.Unlock()
 
 	user := new(models.User)
-
-	if err := c.ShouldBindQuery(&user); err != nil {
-		c.JSON(200, Resp{
-			StatusCode: -1,
-			StatusMsg:  ErrInvalidParams,
-		})
-		return
-	}
+	user.Username = c.Query("username")
+	user.Password = c.Query("password")
+	user.Nickname = c.Query("nickname")
 
 	// 用户名密码合法性检查
 	if !auth.CheckLegal(user) {
@@ -80,7 +68,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// 加密密码,同时创建生成salt，并入库
+	// 入库
 	err := db.InsertNewUser(auth.Encrypt(user))
 	if err != nil {
 		c.JSON(200, Resp{
@@ -96,8 +84,8 @@ func Register(c *gin.Context) {
 			StatusCode: 0,
 			StatusMsg:  "register success",
 		},
-		UserId: user.ID,
-		Token:  utils.GenerateToken(user),
+		Id:    user.ID,
+		Token: utils.GenerateToken(user.ID),
 	})
 }
 
@@ -128,7 +116,7 @@ func Login(c *gin.Context) {
 			StatusCode: 0,
 			StatusMsg:  "login success",
 		},
-		UserId: user.ID,
-		Token:  utils.GenerateToken(user),
+		Id:    user.ID,
+		Token: utils.GenerateToken(user.ID),
 	})
 }

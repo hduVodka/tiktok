@@ -6,7 +6,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"math/rand"
 	"tiktok/config"
-	"tiktok/models"
 	"time"
 )
 
@@ -22,17 +21,14 @@ func SHA256(password, salt string) string {
 
 // 用于解析token
 type UserClaim struct {
-	Id       int
-	Password string
-	Username string
+	Id uint
 	jwt.StandardClaims
 }
 
 // 生成token
-func GenerateToken(user *models.User) string {
+func GenerateToken(id uint) string {
 	uc := UserClaim{
-		Password: user.Password,
-		Username: user.Username,
+		Id: id,
 	}
 	// 用jwt中的方法生成token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, uc)
@@ -53,20 +49,11 @@ func GenerateSalt() string {
 	return code
 }
 
-//todo: 修复下面的函数，jwt请使用jwt的方式校验
-
+// todo: 修复下面的函数，jwt请使用jwt的方式校验
 // 检验token
-func CheckToken(userId int64, tokenString string) bool {
-	/*
-		var userExist models.User
-		db := db.ModelInit()
-		if err := db.Where("id = ?", userId).First(&userExist).Error; err != nil {
-			return false
-		}
-		tokenRight := GenerateToken(&userExist)
-		if tokenRight != tokenString {
-			return false
-		}
-	*/
-	return true
+func CheckToken(userID uint, tokenString string) bool {
+	if tokenString == GenerateToken(userID) {
+		return true
+	}
+	return false
 }

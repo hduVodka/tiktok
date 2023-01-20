@@ -21,10 +21,6 @@ func CheckUsername(user *models.User) bool {
 }
 
 func InsertNewUser(user *models.User) error {
-	// 清除意外数据
-	user.FollowerCount = 0
-	user.FollowCount = 0
-	user.IsFollow = false
 	if err := db.Create(&user).Error; err != nil {
 		return errors.New("插入用户数据失败")
 	}
@@ -47,9 +43,16 @@ func SearchUser(user *models.User) bool {
 
 func FindUserInfoByUserId(userId uint) (*models.User, error) {
 	var user models.User
-	if err := db.First(&user, userId).Error; err != nil {
+	if err := db.Where("id = ?", userId).First(&user).Error; err != nil {
 		log.Fatal(err)
 		return nil, ErrDatabase
 	}
 	return &user, nil
+}
+
+func FindUserInfo(userId uint, user *models.User) bool {
+	if err := db.Where("id = ?", userId).First(&user).Error; err != nil {
+		return false
+	}
+	return true
 }

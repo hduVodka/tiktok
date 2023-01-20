@@ -15,7 +15,7 @@ func Auth(c *gin.Context) {
 	tokenString := c.Query("token")
 	userIdStr := c.Query("user_id")
 	userId, _ := strconv.ParseUint(userIdStr, 10, 64)
-	if utils.CheckToken(int64(userId), tokenString) {
+	if utils.CheckToken(uint(userId), tokenString) {
 		c.Set("userId", uint(userId))
 		c.Next()
 	} else {
