@@ -3,10 +3,10 @@ package utils
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"math/rand"
 	"tiktok/config"
+	"time"
 )
 
 // sha256加密
@@ -27,14 +27,14 @@ type UserClaim struct {
 
 // 生成token
 func GenerateToken(id uint) string {
+	exp := time.Now().Add(time.Hour * time.Duration(1)).Unix()
 	uc := UserClaim{
-		Id: id,
+		Id:             id,
+		StandardClaims: jwt.StandardClaims{ExpiresAt: exp},
 	}
-	// 用jwt中的方法生成token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, uc)
-	// 对token进行加密,key在config里
 	var JwtKey = []byte(config.Conf.GetString("auth.jwt_key"))
-	tokenString, _ := token.SignedString([]byte(JwtKey))
+	tokenString, _ := token.SignedString(JwtKey)
 	return tokenString
 }
 
@@ -57,22 +57,22 @@ func GenerateSalt() string {
 }
 
 // 检验token
-func VerifyToken(id uint, tokenString string) error {
+func VerifyToken(id uint, tokenString string) bool {
 	var JwtKey = []byte(config.Conf.GetString("auth.jwt_key"))
 	// Parse the token
 	token, err := jwt.ParseWithClaims(tokenString, &UserClaim{}, func(token *jwt.Token) (interface{}, error) {
 		return JwtKey, nil
 	})
 	if err != nil {
-		return err
+		return false
 	}
 	// Check if the token is valid
 	if claims, ok := token.Claims.(*UserClaim); ok && token.Valid {
 		if claims.Id != id {
-			return fmt.Errorf("Invalid token for user ID %d", id)
+			return false
 		}
-		return nil
+		return true
 	} else {
-		return err
+		return false
 	}
 }
