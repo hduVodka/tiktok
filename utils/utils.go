@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"math/rand"
 	"tiktok/config"
@@ -56,9 +57,22 @@ func GenerateSalt() string {
 }
 
 // 检验token
-func CheckToken(userID uint, tokenString string) bool {
-	if tokenString == GenerateToken(userID) {
-		return true
+func VerifyToken(id uint, tokenString string) error {
+	var JwtKey = []byte(config.Conf.GetString("auth.jwt_key"))
+	// Parse the token
+	token, err := jwt.ParseWithClaims(tokenString, &UserClaim{}, func(token *jwt.Token) (interface{}, error) {
+		return JwtKey, nil
+	})
+	if err != nil {
+		return err
 	}
-	return false
+	// Check if the token is valid
+	if claims, ok := token.Claims.(*UserClaim); ok && token.Valid {
+		if claims.Id != id {
+			return fmt.Errorf("Invalid token for user ID %d", id)
+		}
+		return nil
+	} else {
+		return err
+	}
 }
