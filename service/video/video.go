@@ -11,8 +11,12 @@ import (
 	"tiktok/db"
 	"tiktok/dto"
 	"tiktok/models"
+	"tiktok/utils"
 	"time"
 )
+
+const videoDir = "public/video/%s/%s.mp4"
+const coverDir = "public/cover/%s/%s.jpg"
 
 func GetFeed(ctx context.Context, latestTime time.Time) ([]dto.Video, time.Time, error) {
 	videos, err := db.GetFeedByTime(latestTime)
@@ -44,9 +48,9 @@ func Publish(ctx context.Context, file multipart.File, title string) error {
 	t := time.Now().Format("2006-01-02")
 	for {
 		uu := uuid.New()
-		videoPath = fmt.Sprintf("public/video/%s/%s.mp4", t, uu.String())
+		videoPath = fmt.Sprintf(videoDir, t, uu.String())
 		if _, err := os.Stat(videoPath); errors.Is(err, os.ErrNotExist) {
-			coverPath = fmt.Sprintf("public/video/%s/%s.jpg", t, uu.String())
+			coverPath = fmt.Sprintf(coverDir, t, uu.String())
 			break
 		}
 	}
@@ -62,7 +66,9 @@ func Publish(ctx context.Context, file multipart.File, title string) error {
 		return fmt.Errorf("fail to save file:%v", err)
 	}
 
-	// todo:获取视频封面并保存
+	if err = utils.GetCoverOfVideo(videoPath, coverPath); err != nil {
+		return fmt.Errorf("fail to get cover of video:%v", err)
+	}
 
 	video := &models.Video{
 		AuthorId: ctx.Value("userId").(uint),
