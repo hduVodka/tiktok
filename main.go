@@ -4,14 +4,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"tiktok/config"
 	"tiktok/controller"
+	"tiktok/db"
 	"tiktok/log"
-	"tiktok/models"
 )
 
 func main() {
 	log.Init()
 	config.Init()
-	models.Init()
+	db.Init()
 
 	e := gin.Default()
 	controller.InitRouter(e)

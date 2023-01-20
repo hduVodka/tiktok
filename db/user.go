@@ -3,12 +3,12 @@ package db
 import (
 	"errors"
 	"gorm.io/gorm"
+	"tiktok/log"
 	"tiktok/models"
 	"tiktok/utils"
 )
 
 func CheckUsername(user *models.User) bool {
-	db := models.Init()
 	var existingUser models.User
 	if err := db.Where("username = ?", user.Username).First(&existingUser).Error; err != nil {
 		if err != gorm.ErrRecordNotFound {
@@ -25,7 +25,6 @@ func InsertNewUser(user *models.User) error {
 	user.FollowerCount = 0
 	user.FollowCount = 0
 	user.IsFollow = false
-	db := models.Init()
 	if err := db.Create(&user).Error; err != nil {
 		return errors.New("插入用户数据失败")
 	}
@@ -33,7 +32,6 @@ func InsertNewUser(user *models.User) error {
 }
 
 func SearchUser(user *models.User) bool {
-	db := models.Init()
 	var userExist models.User
 
 	// 通过用户名找到salt
@@ -45,4 +43,13 @@ func SearchUser(user *models.User) bool {
 	}
 	user.ID = userExist.ID
 	return true
+}
+
+func FindUserInfoByUserId(userId uint) (*models.User, error) {
+	var user models.User
+	if err := db.First(&user, userId).Error; err != nil {
+		log.Fatal(err)
+		return nil, ErrDatabase
+	}
+	return &user, nil
 }

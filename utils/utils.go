@@ -53,25 +53,20 @@ func GenerateSalt() string {
 	return code
 }
 
+//todo: 修复下面的函数，jwt请使用jwt的方式校验
+
 // 检验token
 func CheckToken(userId int64, tokenString string) bool {
-	var userExist models.User
-	db := models.Init()
-	if err := db.Where("id = ?", userId).First(&userExist).Error; err != nil {
-		return false
-	}
-	tokenRight := GenerateToken(&userExist)
-	if tokenRight != tokenString {
-		return false
-	}
-	return true
-}
-
-// 查找userInfo
-func FindUserInfo(userId uint, user *models.User) bool {
-	db := models.Init()
-	if err := db.Where("id = ?", userId).First(&user).Error; err != nil {
-		return false
-	}
+	/*
+		var userExist models.User
+		db := db.ModelInit()
+		if err := db.Where("id = ?", userId).First(&userExist).Error; err != nil {
+			return false
+		}
+		tokenRight := GenerateToken(&userExist)
+		if tokenRight != tokenString {
+			return false
+		}
+	*/
 	return true
 }
