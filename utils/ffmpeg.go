@@ -17,8 +17,7 @@ func Init() {
 	if ffmpegPath == "" {
 		ffmpegPath = "ffmpeg"
 	}
-	out := exec.Command(ffmpegPath, "-version")
-	_, err := out.CombinedOutput()
+	_, err := exec.Command(ffmpegPath, "-version").CombinedOutput()
 	if err != nil {
 		log.Fatalln("ffmpeg is not existed, please install ffmpeg first")
 	}
@@ -29,7 +28,7 @@ func GetCoverOfVideo(videoPath string, coverPath string) error {
 	if err != nil {
 		return err
 	}
-	out, err := exec.Command(ffmpegPath, "-i", videoPath, "-y", "-f", "image2", "-ss", "1", "-vframes", "1", coverPath).CombinedOutput()
+	out, err := exec.Command(ffmpegPath, "-i", videoPath, "-y", "-f", "image2", "-ss", "1", "-frames:v", "1", coverPath).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("fail to get cover of video: %v: %s", err, string(out))
 	}
