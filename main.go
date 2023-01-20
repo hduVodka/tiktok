@@ -6,12 +6,14 @@ import (
 	"tiktok/controller"
 	"tiktok/db"
 	"tiktok/log"
+	"tiktok/utils"
 )
 
 func main() {
 	log.Init()
 	config.Init()
 	db.Init()
+	utils.Init()
 
 	e := gin.Default()
 	controller.InitRouter(e)
