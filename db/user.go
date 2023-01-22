@@ -2,23 +2,9 @@ package db
 
 import (
 	"errors"
-	"gorm.io/gorm"
-	"tiktok/log"
 	"tiktok/models"
 	"tiktok/utils"
 )
-
-func CheckUsername(user *models.User) bool {
-	var existingUser models.User
-	if err := db.Where("username = ?", user.Username).First(&existingUser).Error; err != nil {
-		if err != gorm.ErrRecordNotFound {
-			return false
-		}
-	} else {
-		return false
-	}
-	return true
-}
 
 func InsertNewUser(user *models.User) error {
 	if err := db.Create(&user).Error; err != nil {
@@ -39,15 +25,6 @@ func SearchUser(user *models.User) bool {
 	}
 	user.ID = userExist.ID
 	return true
-}
-
-func FindUserInfoByUserId(userId uint) (*models.User, error) {
-	var user models.User
-	if err := db.Where("id = ?", userId).First(&user).Error; err != nil {
-		log.Fatal(err)
-		return nil, ErrDatabase
-	}
-	return &user, nil
 }
 
 func FindUserInfo(userId uint, user *models.User) bool {

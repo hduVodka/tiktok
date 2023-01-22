@@ -17,7 +17,10 @@ func Init() {
 
 func ModelInit() {
 	source := config.Conf.GetString("server.mysql_source")
-	database, err := gorm.Open(mysql.Open(source), &gorm.Config{})
+	database, err := gorm.Open(mysql.Open(source), &gorm.Config{
+		SkipDefaultTransaction: true,
+		PrepareStmt:            true,
+	})
 	if err != nil {
 		log.Fatalf("fail to connect mysql:%v", err)
 	}

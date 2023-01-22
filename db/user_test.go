@@ -20,15 +20,6 @@ func TestInsertUser(t *testing.T) {
 	InsertNewUser(user)
 }
 
-func TestCheckUsername(t *testing.T) {
-	user := &models.User{
-		Nickname: "1",
-		Username: "22@qq.com",
-		Password: "3sdfaerwt",
-	}
-	CheckUsername(user)
-}
-
 func TestSearchUser(t *testing.T) {
 	user := &models.User{
 		Nickname: "1",

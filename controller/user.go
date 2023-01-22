@@ -59,15 +59,6 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// check username
-	if !db.CheckUsername(user) {
-		c.JSON(200, Resp{
-			StatusCode: -1,
-			StatusMsg:  ErrUserAlreadyExist,
-		})
-		return
-	}
-
 	// 入库
 	err := db.InsertNewUser(auth.Encrypt(user))
 	if err != nil {
