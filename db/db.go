@@ -1,6 +1,8 @@
 package db
 
 import (
+	"context"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"tiktok/config"
@@ -9,10 +11,11 @@ import (
 )
 
 var db *gorm.DB
+var rdb *redis.Client
 
 func Init() {
 	ModelInit()
-	//todo: init redis
+	RedisInit()
 }
 
 func ModelInit() {
@@ -27,5 +30,16 @@ func ModelInit() {
 	db = database
 	if err := db.AutoMigrate(&models.User{}, &models.Video{}, &models.Favorite{}, &models.Comment{}, &models.Follow{}); err != nil {
 		log.Fatalf("fail to migrate models:%v", err)
+	}
+}
+
+func RedisInit() {
+	rdb = redis.NewClient(&redis.Options{
+		Addr:     config.Conf.GetString("server.redis_source"),
+		Password: "",
+		DB:       0,
+	})
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		log.Fatalf("fail to connect redis:%v", err)
 	}
 }
