@@ -11,7 +11,7 @@ func FavoriteAction(favorite *models.Favorite, actionType int) (int, error) {
 	var exist bool
 	// 执行点赞或取消点赞操作
 	if actionType == 1 {
-		exist = db.IsFavorite(favorite.UserID, favorite.VideoID)
+		exist,_ = db.IsFavorite(favorite.UserID, favorite.VideoID)
 		if exist {
 			return http.StatusOK, nil
 		} else {
@@ -21,7 +21,7 @@ func FavoriteAction(favorite *models.Favorite, actionType int) (int, error) {
 			return http.StatusOK, nil
 		}
 	} else if actionType == 2 {
-		exist = db.IsFavorite(favorite.UserID, favorite.VideoID)
+		exist,_ = db.IsFavorite(favorite.UserID, favorite.VideoID)
 		if !exist {
 			return http.StatusOK, nil
 		}
