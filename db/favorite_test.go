@@ -23,18 +23,14 @@ func TestFavorite_InsertFavorite(t *testing.T) {
 }
 
 func TestFavorite_DeleteFavorite(t *testing.T) {
-	f := &models.Favorite{
-		UserID:  1,
-		VideoID: 1,
+	err := DeleteFavorite(1, 1)
+	if err != nil {
+		t.Error(err)
 	}
-	DeleteFavorite(f)
 }
 
 func TestFavorite_GetFavoriteListByUserID(t *testing.T) {
-	f := &models.Favorite{
-		UserID: 1,
-	}
-	vs, err := GetFavoriteListByUserID(f)
+	vs, err := GetFavoriteListByUserID(1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -42,11 +38,7 @@ func TestFavorite_GetFavoriteListByUserID(t *testing.T) {
 }
 
 func TestFavorite_IsFavorite(t *testing.T) {
-	f := &models.Favorite{
-		UserID:  1,
-		VideoID: 1,
-	}
-	t.Log(IsFavorite(f))
+	t.Log(IsFavorite(1, 1))
 }
 
 func TestCountFavoriteByID(t *testing.T) {
