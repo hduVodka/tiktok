@@ -12,7 +12,6 @@ func init() {
 	os.Chdir("../")
 	config.Init()
 	models.Init()
-	//db = db.Debug()
 }
 
 func TestFavorite_InsertFavorite(t *testing.T) {

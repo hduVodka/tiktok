@@ -23,10 +23,11 @@ func DeleteFavorite(f *models.Favorite) error {
 
 func GetFavoriteListByUserID(f *models.Favorite) ([]models.Video, error) {
 	var videos []models.Video
-	if err := db.Raw("SELECT v.* FROM videos AS v JOIN favorites AS f ON v.id = f.video_id WHERE f.user_id = ? AND f.deleted_at IS NULL ORDER BY f.created_at desc", f.UserID).Scan(&videos).Error; err != nil {
+	if err := db.Model(&models.Video{}).Joins("join favorites AS f on f.video_id = videos.id").Where("f.user_id = ? AND f.deleted_at IS NULL", f.UserID).Order("f.created_at desc").Find(&videos).Error; err != nil {
 		log.Error("get favorite list error: ", err)
 		return nil, err
 	}
+
 	return videos, nil
 }
 
