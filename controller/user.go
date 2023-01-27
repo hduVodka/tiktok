@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"sync"
 	"tiktok/db"
 	"tiktok/dto"
 	"tiktok/models"
@@ -40,10 +39,6 @@ func UserInfo(c *gin.Context) {
 }
 
 func Register(c *gin.Context) {
-
-	var mu sync.Mutex
-	mu.Lock()
-	defer mu.Unlock()
 
 	user := new(models.User)
 	user.Username = c.Query("username")
