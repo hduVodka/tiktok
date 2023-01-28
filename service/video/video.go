@@ -10,6 +10,7 @@ import (
 	"os"
 	"tiktok/db"
 	"tiktok/dto"
+	"tiktok/log"
 	"tiktok/models"
 	"tiktok/utils"
 	"time"
@@ -96,15 +97,25 @@ func PublishList(c context.Context) ([]dto.Video, error) {
 func modelVideos2dtoVideos(userId uint, videos []models.Video) ([]dto.Video, error) {
 	res := make([]dto.Video, len(videos))
 	for i, v := range videos {
-		// todo: cache favorite and comment count
+		author := db.GetUser(v.AuthorId)
+		isFav, err := db.IsFavorite(userId, v.ID)
+		if err != nil {
+			log.Error(err)
+		}
 		res[i] = dto.Video{
-			Id:            v.ID,
-			Author:        dto.User{},
+			Id: v.ID,
+			Author: dto.User{
+				Id:            author.ID,
+				Name:          author.Username,
+				FollowCount:   author.FollowCount,
+				FollowerCount: author.FollowerCount,
+				IsFollow:      false,
+			},
 			PlayUrl:       v.PlayUrl,
 			CoverUrl:      v.CoverUrl,
-			FavoriteCount: 0,
-			CommentCount:  0,
-			IsFavorite:    0,
+			FavoriteCount: v.FavoriteCount,
+			CommentCount:  v.CommentCount,
+			IsFavorite:    isFav,
 			Title:         v.Title,
 		}
 	}

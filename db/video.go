@@ -1,6 +1,7 @@
 package db
 
 import (
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"tiktok/log"
 	"tiktok/models"
@@ -39,4 +40,22 @@ func GetVideoListById(id uint) ([]models.Video, error) {
 		return nil, ErrDatabase
 	}
 	return list, nil
+}
+
+func IncreaseVideoFavoriteCount(id uint) error {
+	res := db.Model(&models.Video{}).Where("id=?", id).Update("favorite_count", gorm.Expr("favorite_count+1"))
+	if res.Error != nil {
+		log.Errorf("increase video favorite count fail:%v", res.Error)
+		return ErrDatabase
+	}
+	return nil
+}
+
+func IncreaseVideoCommentCount(id uint) error {
+	res := db.Model(&models.Video{}).Where("id=?", id).Update("comment_count", gorm.Expr("comment_count+1"))
+	if res.Error != nil {
+		log.Errorf("increase video comment count fail:%v", res.Error)
+		return ErrDatabase
+	}
+	return nil
 }
