@@ -35,8 +35,8 @@ func ModelInit() {
 
 func RedisInit() {
 	rdb = redis.NewClient(&redis.Options{
-		Addr:     config.Conf.GetString("server.redis_source"),
-		Password: "",
+		Addr:     config.Conf.GetString("server.redis.addr"),
+		Password: config.Conf.GetString("server.redis.password"),
 		DB:       0,
 	})
 	if err := rdb.Ping(context.Background()).Err(); err != nil {

@@ -2,7 +2,9 @@ server:
   mysql_source: "root@localhost/tiktok"
   port: 25010
   host: "localhost:25010"
-# redis_source: localhost:6379
+  redis:
+    addr: "localhost:6379"
+    password: ""
 
 auth:
   # define the secret key
