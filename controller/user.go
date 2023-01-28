@@ -23,8 +23,7 @@ type UserInfoResp struct {
 
 func UserInfo(c *gin.Context) {
 	userId := c.Keys["userId"].(uint)
-	user := new(models.User)
-	if db.FindUserInfo(userId, user) {
+	if user := db.GetUser(userId); user != nil {
 		c.JSON(200, UserInfoResp{
 			StatusCode: 0,
 			StatusMsg:  "success",
