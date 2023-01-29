@@ -3,24 +3,19 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	strconv "strconv"
-	"tiktok/models"
-	follow2 "tiktok/service/follow"
+	"strconv"
+	"tiktok/dto"
+	"tiktok/service/follow"
 )
 
 type ListResp struct {
 	Resp
-	List []models.User
+	List []dto.User `json:"user_list"`
 }
 
 func RelationAction(c *gin.Context) {
-	var userId interface{}
-
-	var actionType int
-	var toUserId uint
-	var err error
-
-	if actionType, err = strconv.Atoi(c.Query("action_type")); err != nil {
+	actionType, err := strconv.Atoi(c.Query("action_type"))
+	if err != nil {
 		c.JSON(http.StatusOK, Resp{
 			StatusCode: -1,
 			StatusMsg:  ErrInvalidParams,
@@ -28,92 +23,82 @@ func RelationAction(c *gin.Context) {
 		return
 	}
 
-	toUserId = c.GetUint("to_user_id")
-
-	follow := &models.Follow{
-		UserId:   userId.(uint),
-		ToUserId: toUserId,
+	toUserId, err := strconv.ParseUint(c.Query("to_user_id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
+			StatusMsg:  ErrInvalidParams,
+		})
+		return
 	}
 
-	if err := follow2.RelationAction(follow, actionType); err != nil {
+	if err := follow.RelationAction(c, uint(toUserId), actionType); err != nil {
 		c.JSON(http.StatusOK, Resp{
 			StatusCode: -1,
 			StatusMsg:  err.Error(),
 		})
-	} else {
-		c.JSON(http.StatusOK, Resp{
-			StatusCode: 0,
-			StatusMsg:  "succeed",
-		})
+		return
 	}
 
+	c.JSON(http.StatusOK, Resp{
+		StatusCode: 0,
+		StatusMsg:  "succeed",
+	})
 }
 
 func FollowList(c *gin.Context) {
-	var userId interface{}
-
-	follow := &models.Follow{
-		UserId: userId.(uint),
-	}
-
-	if followList, err := follow2.FollowList(follow); err != nil {
+	followList, err := follow.FollowList(c)
+	if err != nil {
 		c.JSON(http.StatusOK, Resp{
 			StatusCode: -1,
-			StatusMsg:  "failed to get",
+			StatusMsg:  "failed to get follow list",
 		})
-	} else {
-		c.JSON(http.StatusOK, ListResp{
-			Resp: Resp{
-				StatusCode: 0,
-				StatusMsg:  "success",
-			},
-			List: followList,
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, ListResp{
+		Resp: Resp{
+			StatusCode: 0,
+			StatusMsg:  "success",
+		},
+		List: followList,
+	})
 }
 
 func FollowerList(c *gin.Context) {
-	var userId interface{}
-
-	follow := &models.Follow{
-		UserId: userId.(uint),
-	}
-
-	if fanList, err := follow2.FollowerList(follow); err != nil {
+	fanList, err := follow.FollowerList(c)
+	if err != nil {
 		c.JSON(http.StatusOK, Resp{
 			StatusCode: -1,
 			StatusMsg:  "failed to get",
 		})
-	} else {
-		c.JSON(http.StatusOK, ListResp{
-			Resp: Resp{
-				StatusCode: 0,
-				StatusMsg:  "success",
-			},
-			List: fanList,
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, ListResp{
+		Resp: Resp{
+			StatusCode: 0,
+			StatusMsg:  "success",
+		},
+		List: fanList,
+	})
 }
 
 func FriendList(c *gin.Context) {
-	var userId interface{}
-
-	follow := &models.Follow{
-		UserId: userId.(uint),
-	}
-
-	if friendList, err := follow2.FriendList(follow); err != nil {
+	friendList, err := follow.FriendList(c)
+	if err != nil {
 		c.JSON(http.StatusOK, Resp{
 			StatusCode: -1,
 			StatusMsg:  "failed to get",
 		})
-	} else {
-		c.JSON(http.StatusOK, ListResp{
-			Resp: Resp{
-				StatusCode: 0,
-				StatusMsg:  "success",
-			},
-			List: friendList,
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, ListResp{
+		Resp: Resp{
+			StatusCode: 0,
+			StatusMsg:  "success",
+		},
+		List: friendList,
+	})
 }

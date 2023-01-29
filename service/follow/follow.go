@@ -1,59 +1,82 @@
 package follow
 
 import (
+	"context"
 	"errors"
+	"tiktok/db"
+	"tiktok/dto"
 	"tiktok/models"
 )
 
-func RelationAction(follow *models.Follow, actionType int) error {
-	var exist bool
-	if actionType == 1 {
-		exist = follow.IsFollow()
-		if exist {
-			return nil
-		} else {
-			if err := follow.InsertFollow(); err != nil {
-				return errors.New("failed")
-			}
-			return nil
-		}
-	} else if actionType == 2 {
-		exist = follow.IsFollow()
-		if !exist {
-			return nil
-		}
-		if err := follow.DeleteFollow(); err != nil {
-			return errors.New("failed")
-		}
-		return nil
-	} else {
-		return errors.New("invalid params")
+func RelationAction(ctx context.Context, toUserId uint, actionType int) error {
+	userId := ctx.Value("userId").(uint)
+	exist := db.IsFollow(ctx, userId, toUserId)
+	if actionType == 1 && !exist {
+		return db.InsertFollow(ctx, userId, toUserId)
 	}
+
+	if actionType == 2 && exist {
+		return db.DeleteFollow(ctx, userId, toUserId)
+	}
+
+	return errors.New("invalid params")
 }
 
-func FollowList(follow *models.Follow) ([]models.User, error) {
-	var followList []models.User
+func FollowList(ctx context.Context) ([]dto.User, error) {
+	var modelList []models.User
 	var err error
-	if followList, err = follow.GetFollowListByUserID(); err != nil {
+	if modelList, err = db.GetFollowListByUserID(ctx, ctx.Value("userId").(uint)); err != nil {
 		return nil, err
 	}
-	return followList, nil
+	users := make([]dto.User, len(modelList))
+	for i, v := range modelList {
+		users[i] = dto.User{
+			Id:            v.ID,
+			Name:          v.Username,
+			FollowCount:   v.FollowCount,
+			FollowerCount: v.FollowerCount,
+			IsFollow:      true,
+		}
+	}
+	return users, nil
 }
 
-func FollowerList(follow *models.Follow) ([]models.User, error) {
-	var fanList []models.User
-	var err error
-	if fanList, err = follow.GetFanListByUserId(); err != nil {
+func FollowerList(ctx context.Context) ([]dto.User, error) {
+	userId := ctx.Value("userId").(uint)
+	modelList, err := db.GetFanListByUserId(ctx, userId)
+	if err != nil {
 		return nil, err
 	}
-	return fanList, nil
+
+	users := make([]dto.User, len(modelList))
+	for i, v := range modelList {
+		users[i] = dto.User{
+			Id:            v.ID,
+			Name:          v.Username,
+			FollowCount:   v.FollowCount,
+			FollowerCount: v.FollowerCount,
+			IsFollow:      db.IsFollow(ctx, userId, v.ID),
+		}
+	}
+	return users, nil
 }
 
-func FriendList(follow *models.Follow) ([]models.User, error) {
-	var friendList []models.User
-	var err error
-	if friendList, err = follow.GetFriendListByUserId(); err != nil {
+func FriendList(ctx context.Context) ([]dto.User, error) {
+	userId := ctx.Value("userId").(uint)
+	friendList, err := db.GetFriendListByUserId()
+	if err != nil {
 		return nil, err
 	}
-	return friendList, nil
+
+	users := make([]dto.User, len(friendList))
+	for i, v := range friendList {
+		users[i] = dto.User{
+			Id:            v.ID,
+			Name:          v.Username,
+			FollowCount:   v.FollowCount,
+			FollowerCount: v.FollowerCount,
+			IsFollow:      db.IsFollow(ctx, userId, v.ID),
+		}
+	}
+	return users, nil
 }
