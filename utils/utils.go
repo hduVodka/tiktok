@@ -3,11 +3,25 @@ package utils
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/dgrijalva/jwt-go"
 	"math/rand"
+	"os/exec"
 	"tiktok/config"
-	"time"
+	"tiktok/log"
 )
+
+func Init() {
+	// check ffmpeg if existed
+	ffmpegPath = config.Conf.GetString("video.ffmpeg")
+	if ffmpegPath == "" {
+		ffmpegPath = "ffmpeg"
+	}
+	_, err := exec.Command(ffmpegPath, "-version").CombinedOutput()
+	if err != nil {
+		log.Fatalln("ffmpeg is not existed, please install ffmpeg first")
+	}
+	// load jwt secret
+	jwtSecret = []byte(config.Conf.GetString("auth.jwt_key"))
+}
 
 // sha256加密
 func SHA256(password, salt string) string {
@@ -17,25 +31,6 @@ func SHA256(password, salt string) string {
 
 	hash := sha256.Sum256(saltedPassword)
 	return hex.EncodeToString(hash[:])
-}
-
-// 用于解析token
-type UserClaim struct {
-	Id uint
-	jwt.StandardClaims
-}
-
-// 生成token
-func GenerateToken(id uint) string {
-	exp := time.Now().Add(time.Hour * time.Duration(1)).Unix()
-	uc := UserClaim{
-		Id:             id,
-		StandardClaims: jwt.StandardClaims{ExpiresAt: exp},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, uc)
-	var JwtKey = []byte(config.Conf.GetString("auth.jwt_key"))
-	tokenString, _ := token.SignedString(JwtKey)
-	return tokenString
 }
 
 // 生成随机salt
@@ -54,25 +49,4 @@ func GenerateSalt() string {
 		}
 	}
 	return string(b)
-}
-
-// 检验token
-func VerifyToken(id uint, tokenString string) bool {
-	var JwtKey = []byte(config.Conf.GetString("auth.jwt_key"))
-	// Parse the token
-	token, err := jwt.ParseWithClaims(tokenString, &UserClaim{}, func(token *jwt.Token) (interface{}, error) {
-		return JwtKey, nil
-	})
-	if err != nil {
-		return false
-	}
-	// Check if the token is valid
-	if claims, ok := token.Claims.(*UserClaim); ok && token.Valid {
-		if claims.Id != id {
-			return false
-		}
-		return true
-	} else {
-		return false
-	}
 }
