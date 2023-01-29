@@ -39,7 +39,9 @@ func GetFeed(ctx context.Context, latestTime time.Time) ([]dto.Video, time.Time,
 		return nil, time.Now(), err
 	}
 
-	oldest = videos[len(videos)-1].CreatedAt
+	if len(videos) != 0 {
+		oldest = videos[len(videos)-1].CreatedAt
+	}
 
 	return res, oldest, nil
 }
