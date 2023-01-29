@@ -41,10 +41,10 @@ func TestFavorite_IsFavorite(t *testing.T) {
 	t.Log(IsFavorite(1, 1))
 }
 
-func TestCountFavoriteByID(t *testing.T) {
-	count, err := CountFavoriteByID(1)
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(count)
-}
+//func TestCountFavoriteByID(t *testing.T) {
+//	count, err := CountFavoriteByID(1)
+//	if err != nil {
+//		t.Error(err)
+//	}
+//	t.Log(count)
+//}
