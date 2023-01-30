@@ -11,20 +11,14 @@ import (
 
 // CommentAction 写/改/删评论操作
 func CommentAction(comment *models.Comment, actionType int) (int, error) {
-	var exist bool
 	// 评论
 	if actionType == 1 {
-		exist = comment.IsInSQL()
-		if err := comment.InsertComment(); err != nil {
+		if err := db.InsertComment(comment); err != nil {
 			return http.StatusInternalServerError, errors.New("评论失败")
 		}
 		return http.StatusOK, nil
 	} else if actionType == 2 {
-		exist = comment.IsInSQL()
-		if !exist {
-			return http.StatusOK, nil
-		}
-		if err := comment.DeleteComment(); err != nil {
+		if err := db.DeleteComment(comment); err != nil {
 			return http.StatusInternalServerError, errors.New("取消评论失败")
 		}
 		return http.StatusOK, nil
@@ -35,7 +29,7 @@ func CommentAction(comment *models.Comment, actionType int) (int, error) {
 
 // CommentList 返回评论列表
 func CommentList(ctx context.Context, videoId uint) ([]dto.Comment, error) {
-	commentList, err := models.GetCommentListByVideoId(videoId)
+	commentList, err := db.GetCommentListByVideoId(videoId)
 	if err != nil {
 		return nil, err
 	}
