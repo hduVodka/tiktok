@@ -45,7 +45,7 @@ func TestComment_GetCommentListByVideoId(t *testing.T) {
 		return
 	}
 	for i := 0; i < len(lis); i++ {
-		fmt.Printf("%#v", *lis[i])
+		fmt.Printf("%#v", lis[i])
 	}
 }
 

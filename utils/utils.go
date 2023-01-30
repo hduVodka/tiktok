@@ -4,22 +4,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"math/rand"
-	"os/exec"
 	"tiktok/config"
-	"tiktok/log"
 	"time"
 )
 
 func Init() {
-	// check ffmpeg if existed
-	ffmpegPath = config.Conf.GetString("video.ffmpeg")
-	if ffmpegPath == "" {
-		ffmpegPath = "ffmpeg"
-	}
-	_, err := exec.Command(ffmpegPath, "-version").CombinedOutput()
-	if err != nil {
-		log.Fatalln("ffmpeg is not existed, please install ffmpeg first")
-	}
 	// load jwt secret
 	jwtSecret = []byte(config.Conf.GetString("auth.jwt_key"))
 }

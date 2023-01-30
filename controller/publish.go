@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"path"
 	"tiktok/dto"
 	"tiktok/log"
 	"tiktok/service/video"
@@ -35,7 +36,16 @@ func Publish(c *gin.Context) {
 		return
 	}
 
-	// todo:检查文件类型
+	if len(fh.Filename) == 0 {
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
+			StatusMsg:  ErrInvalidParams,
+		})
+		log.Error(err)
+		return
+	}
+
+	ext := path.Ext(fh.Filename)
 
 	file, err := fh.Open()
 	if err != nil {
@@ -48,13 +58,7 @@ func Publish(c *gin.Context) {
 	}
 	defer file.Close()
 
-	if err := video.Publish(c, file, title); err != nil {
-		c.JSON(http.StatusOK, Resp{
-			StatusCode: -1,
-			StatusMsg:  fmt.Sprintf("internal server error:%v", err),
-		})
-		return
-	}
+	video.Publish(c, file, ext, title)
 
 	c.JSON(http.StatusOK, Resp{
 		StatusCode: 0,
