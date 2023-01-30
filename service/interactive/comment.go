@@ -1,8 +1,11 @@
 package interactive
 
 import (
+	"context"
 	"errors"
 	"net/http"
+	"tiktok/db"
+	"tiktok/dto"
 	"tiktok/models"
 )
 
@@ -31,11 +34,30 @@ func CommentAction(comment *models.Comment, actionType int) (int, error) {
 }
 
 // CommentList 返回评论列表
-func CommentList(videoId uint) ([]*models.Comment, error) {
-	var commentList []*models.Comment
-	var err error
-	if commentList, err = models.GetCommentListByVideoId(videoId); err != nil {
+func CommentList(ctx context.Context, videoId uint) ([]dto.Comment, error) {
+	commentList, err := models.GetCommentListByVideoId(videoId)
+	if err != nil {
 		return nil, err
 	}
-	return commentList, nil
+	return CommentModels2dto(ctx, commentList), nil
+}
+
+func CommentModels2dto(ctx context.Context, models []models.Comment) []dto.Comment {
+	userId := ctx.Value("userId").(uint)
+	dtoList := make([]dto.Comment, len(models))
+	for i, v := range models {
+		dtoList[i] = dto.Comment{
+			Id: v.ID,
+			User: dto.User{
+				Id:            v.User.ID,
+				Name:          v.User.Username,
+				FollowCount:   v.User.FollowCount,
+				FollowerCount: v.User.FollowerCount,
+				IsFollow:      db.IsFollow(ctx, userId, v.UserID),
+			},
+			Content:    v.Content,
+			CreateDate: v.CreatedAt.Format("01-02"),
+		}
+	}
+	return dtoList
 }

@@ -2,37 +2,27 @@ package interactive
 
 import (
 	"errors"
-	"net/http"
 	"tiktok/db"
 	"tiktok/models"
 )
 
+const AddFavorite = 1
+const CancelFavorite = 2
+
 func FavoriteAction(favorite *models.Favorite, actionType int) (int, error) {
-	var exist bool
 	// 执行点赞或取消点赞操作
-	if actionType == 1 {
-		exist,_ = db.IsFavorite(favorite.UserID, favorite.VideoID)
-		if exist {
-			return http.StatusOK, nil
-		} else {
-			if err := db.InsertFavorite(favorite); err != nil {
-				return http.StatusInternalServerError, errors.New("点赞失败")
-			}
-			return http.StatusOK, nil
+	if actionType == AddFavorite {
+		if err := db.AddFavorite(favorite); err != nil {
+			return -1, err
 		}
-	} else if actionType == 2 {
-		exist,_ = db.IsFavorite(favorite.UserID, favorite.VideoID)
-		if !exist {
-			return http.StatusOK, nil
+		return 0, nil
+	} else if actionType == CancelFavorite {
+		if err := db.RemoveFavorite(favorite.UserID, favorite.VideoID); err != nil {
+			return -1, errors.New("取消点赞失败")
 		}
-
-		if err := db.DeleteFavorite(favorite.UserID, favorite.VideoID); err != nil {
-			return http.StatusInternalServerError, errors.New("取消点赞失败")
-		}
-
-		return http.StatusOK, nil
+		return 0, nil
 	} else {
-		return http.StatusBadRequest, errors.New("请求参数错误")
+		return -1, errors.New("请求参数错误")
 	}
 }
 

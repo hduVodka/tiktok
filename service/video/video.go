@@ -8,6 +8,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"tiktok/config"
 	"tiktok/db"
 	"tiktok/dto"
 	"tiktok/log"
@@ -16,8 +17,8 @@ import (
 	"time"
 )
 
-const videoDir = "public/video/%s/%s.mp4"
-const coverDir = "public/cover/%s/%s.jpg"
+const videoPathFormat = "public/video/%s/%s.mp4"
+const coverPathFormat = "public/cover/%s/%s.jpg"
 
 func GetFeed(ctx context.Context, latestTime time.Time) ([]dto.Video, time.Time, error) {
 	videos, err := db.GetFeedByTime(latestTime)
@@ -47,20 +48,28 @@ func GetFeed(ctx context.Context, latestTime time.Time) ([]dto.Video, time.Time,
 }
 
 func Publish(ctx context.Context, file multipart.File, title string) error {
-	var videoPath, coverPath string
 	t := time.Now().Format("2006-01-02")
+	uu := uuid.New()
+	videoPath := fmt.Sprintf(videoPathFormat, t, uu.String())
 	for {
-		uu := uuid.New()
-		videoPath = fmt.Sprintf(videoDir, t, uu.String())
 		if _, err := os.Stat(videoPath); errors.Is(err, os.ErrNotExist) {
-			coverPath = fmt.Sprintf(coverDir, t, uu.String())
 			break
 		}
+		uu = uuid.New()
+		videoPath = fmt.Sprintf(videoPathFormat, t, uu.String())
 	}
 
-	dst, err := os.Create(videoPath)
+	filename := uu.String()
+	err := os.Mkdir("public/video/"+t, 0770)
+	if err != nil && !os.IsExist(err) {
+		log.Errorf("fail to mkdir:%v", err)
+		return errors.New("fail to create file")
+	}
+
+	dst, err := os.Create(fmt.Sprintf(videoPathFormat, t, filename))
 	if err != nil {
-		return fmt.Errorf("fail to create file:%v", err)
+		log.Errorf("fail to create file:%v", err)
+		return errors.New("fail to create file")
 	}
 	defer dst.Close()
 
@@ -69,6 +78,7 @@ func Publish(ctx context.Context, file multipart.File, title string) error {
 		return fmt.Errorf("fail to save file:%v", err)
 	}
 
+	coverPath := fmt.Sprintf(coverPathFormat, t, filename)
 	if err = utils.GetCoverOfVideo(videoPath, coverPath); err != nil {
 		return fmt.Errorf("fail to get cover of video:%v", err)
 	}
@@ -76,8 +86,8 @@ func Publish(ctx context.Context, file multipart.File, title string) error {
 	video := &models.Video{
 		AuthorId: ctx.Value("userId").(uint),
 		Title:    title,
-		PlayUrl:  videoPath,
-		CoverUrl: coverPath,
+		PlayUrl:  fmt.Sprintf("%s/%s.mp4", t, filename),
+		CoverUrl: fmt.Sprintf("%s/%s.jpg", t, filename),
 	}
 	err = db.InsertVideo(video)
 	if err != nil {
@@ -97,12 +107,13 @@ func PublishList(c context.Context) ([]dto.Video, error) {
 }
 
 func modelVideos2dtoVideos(userId uint, videos []models.Video) ([]dto.Video, error) {
+	host := config.Conf.GetString("server.host")
 	res := make([]dto.Video, len(videos))
 	for i, v := range videos {
 		author := db.GetUser(v.AuthorId)
 		isFav, err := db.IsFavorite(userId, v.ID)
 		if err != nil {
-			log.Error(err)
+			log.Errorf("fail to check favorite:%v", err)
 		}
 		res[i] = dto.Video{
 			Id: v.ID,
@@ -113,8 +124,8 @@ func modelVideos2dtoVideos(userId uint, videos []models.Video) ([]dto.Video, err
 				FollowerCount: author.FollowerCount,
 				IsFollow:      false,
 			},
-			PlayUrl:       v.PlayUrl,
-			CoverUrl:      v.CoverUrl,
+			PlayUrl:       GenUrl(host, "static/video", v.PlayUrl),
+			CoverUrl:      GenUrl(host, "static/cover", v.CoverUrl),
 			FavoriteCount: v.FavoriteCount,
 			CommentCount:  v.CommentCount,
 			IsFavorite:    isFav,
@@ -122,4 +133,12 @@ func modelVideos2dtoVideos(userId uint, videos []models.Video) ([]dto.Video, err
 		}
 	}
 	return res, nil
+}
+
+func GenUrl(host string, path ...string) string {
+	res := fmt.Sprintf("http://%s", host)
+	for _, p := range path {
+		res = fmt.Sprintf("%s/%s", res, p)
+	}
+	return res
 }

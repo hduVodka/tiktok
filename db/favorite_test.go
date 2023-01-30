@@ -17,34 +17,36 @@ func init() {
 func TestFavorite_InsertFavorite(t *testing.T) {
 	f := &models.Favorite{
 		UserID:  1,
-		VideoID: 1,
+		VideoID: 2,
 	}
-	InsertFavorite(f)
+	err := AddFavorite(f)
+	if err != nil {
+		t.Log(err.Error())
+	}
 }
 
 func TestFavorite_DeleteFavorite(t *testing.T) {
-	err := DeleteFavorite(1, 1)
+	err := RemoveFavorite(1, 2)
 	if err != nil {
-		t.Error(err)
+		t.Error(err.Error())
 	}
 }
 
 func TestFavorite_GetFavoriteListByUserID(t *testing.T) {
 	vs, err := GetFavoriteListByUserID(1)
 	if err != nil {
-		t.Error(err)
+		t.Error(err.Error())
 	}
 	t.Log(len(vs))
 }
 
 func TestFavorite_IsFavorite(t *testing.T) {
-	t.Log(IsFavorite(1, 1))
+	t.Log(IsFavorite(1, 2))
 }
 
-//func TestCountFavoriteByID(t *testing.T) {
-//	count, err := CountFavoriteByID(1)
-//	if err != nil {
-//		t.Error(err)
-//	}
-//	t.Log(count)
-//}
+func TestTemp(t *testing.T) {
+	deleteCache()
+	TestFavorite_InsertFavorite(t)
+
+	TestFavorite_GetFavoriteListByUserID(t)
+}

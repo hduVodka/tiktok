@@ -21,7 +21,7 @@ func IsFollow(ctx context.Context, userId uint, toUserId uint) bool {
 func InsertFollow(ctx context.Context, userId uint, toUserId uint) error {
 	if err := db.Clauses(clause.OnConflict{
 		DoNothing: true,
-	}).Create(models.Follow{
+	}).Create(&models.Follow{
 		UserId:   userId,
 		ToUserId: toUserId,
 	}).Error; err != nil {
@@ -32,7 +32,7 @@ func InsertFollow(ctx context.Context, userId uint, toUserId uint) error {
 }
 
 func DeleteFollow(ctx context.Context, userId uint, toUserId uint) error {
-	if err := db.Delete("user_id = ? AND to_user_id = ?", userId, toUserId).Error; err != nil {
+	if err := db.Model(&models.Follow{}).Delete("user_id = ? AND to_user_id = ?", userId, toUserId).Error; err != nil {
 		log.Error("delete follow error:", err)
 		return ErrDatabase
 	}
