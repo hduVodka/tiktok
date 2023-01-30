@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"tiktok/config"
 	"tiktok/log"
+	"time"
+	"unsafe"
 )
 
 func Init() {
@@ -34,19 +36,31 @@ func SHA256(password, salt string) string {
 }
 
 // 生成随机salt
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+var src = rand.NewSource(time.Now().UnixNano())
+
 const (
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	// 6 bits to represent a letter index
+	letterIdBits = 6
+	// All 1-bits as many as letterIdBits
+	letterIdMask = 1<<letterIdBits - 1
+	letterIdMax  = 63 / letterIdBits
 )
 
 func GenerateSalt() string {
 	b := make([]byte, 8)
-	for i := 0; i < 8; {
-		if idx := int(rand.Int63() & letterIdxMask); idx < len(letterBytes) {
-			b[i] = letterBytes[idx]
-			i++
+	// A rand.Int63() generates 63 random bits, enough for letterIdMax letters!
+	for i, cache, remain := 7, src.Int63(), letterIdMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = src.Int63(), letterIdMax
 		}
+		if idx := int(cache & letterIdMask); idx < len(letters) {
+			b[i] = letters[idx]
+			i--
+		}
+		cache >>= letterIdBits
+		remain--
 	}
-	return string(b)
+	return *(*string)(unsafe.Pointer(&b))
 }
