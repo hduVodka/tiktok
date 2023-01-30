@@ -8,85 +8,70 @@ import (
 	"tiktok/service/interactive"
 )
 
+type FavoriteListResp struct {
+	Resp
+	VideoList []models.Video `json:"video_list"`
+}
+
 func FavoriteAction(c *gin.Context) {
-
 	// 从上下文中获取用户id
-	var userID interface{}
-	var exist bool
+	userId := c.GetUint("userId")
 
-	if userID, exist = c.Get("userId"); !exist {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 401,
-			"msg":  "未登录",
+	actionType, err := strconv.Atoi(c.Query("action_type"))
+	if err != nil {
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
+			StatusMsg:  ErrInvalidParams,
 		})
 		return
 	}
 
-	// 解析请求参数
-	var actionType int
-	var videoID int
-	var err error
-
-	if actionType, err = strconv.Atoi(c.Query("action_type")); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "请求参数错误",
-		})
-		return
-	}
-
-	if videoID, err = strconv.Atoi(c.Query("video_id")); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "请求参数错误",
+	videoID, err := strconv.ParseUint(c.Query("video_id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: -1,
+			StatusMsg:  ErrInvalidParams,
 		})
 		return
 	}
 
 	favorite := &models.Favorite{
 		VideoID: uint(videoID),
-		UserID:  userID.(uint),
+		UserID:  userId,
 	}
 
 	if code, err := interactive.FavoriteAction(favorite, actionType); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"status_code": code,
-			"status_msg":  err.Error(),
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: code,
+			StatusMsg:  err.Error(),
 		})
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"status_code": code,
-			"status_msg":  "操作成功",
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: code,
+			StatusMsg:  "操作成功",
 		})
 	}
 }
 
 func FavoriteList(c *gin.Context) {
-	var userID interface{}
-	var exist bool
-
-	if userID, exist = c.Get("userId"); !exist {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 401,
-			"msg":  "未登录",
-		})
-		return
-	}
+	userID := c.GetUint("userId")
 
 	favorite := &models.Favorite{
-		UserID: userID.(uint),
+		UserID: userID,
 	}
 
 	if videoList, err := interactive.FavoriteList(favorite); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"status_code": 500,
-			"status_msg":  "获取点赞列表失败",
+		c.JSON(http.StatusOK, Resp{
+			StatusCode: 500,
+			StatusMsg:  "获取点赞列表失败",
 		})
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"status_code": 200,
-			"status_msg":  "获取点赞列表成功",
-			"video_list":  videoList,
+		c.JSON(http.StatusOK, FavoriteListResp{
+			Resp: Resp{
+				StatusCode: 0,
+				StatusMsg:  "获取点赞列表成功",
+			},
+			VideoList: videoList,
 		})
 	}
 }
