@@ -1,7 +1,6 @@
 package interactive
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"tiktok/config"
@@ -33,12 +32,11 @@ func TestCommentAction(t *testing.T) {
 }
 
 func TestCommentList(t *testing.T) {
-	var ctx context.Context
-	lis, err := CommentList(ctx, 1)
+	lis, err := CommentList(1)
 	if err != nil {
 		t.Error(err)
 	}
 	for i := 0; i < len(lis); i++ {
-		fmt.Printf("%#v", lis[i])
+		fmt.Printf("%#v", *lis[i])
 	}
 }
