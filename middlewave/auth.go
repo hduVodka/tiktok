@@ -12,6 +12,17 @@ type Resp struct {
 
 func Auth(c *gin.Context) {
 	tokenString := c.Query("token")
+	if tokenString == "" {
+		tokenString = c.PostForm("token")
+	}
+	if tokenString == "" {
+		c.AbortWithStatusJSON(200, Resp{
+			StatusCode: -1,
+			StatusMsg:  "token is empty",
+		})
+		return
+	}
+
 	userId, err := utils.VerifyToken(tokenString)
 	if err != nil {
 		c.AbortWithStatusJSON(200, Resp{
@@ -20,5 +31,6 @@ func Auth(c *gin.Context) {
 		})
 		return
 	}
+
 	c.Set("userId", uint(userId))
 }
