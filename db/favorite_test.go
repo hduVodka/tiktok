@@ -19,14 +19,14 @@ func TestFavorite_InsertFavorite(t *testing.T) {
 		UserID:  1,
 		VideoID: 2,
 	}
-	err := InsertFavorite(f)
+	err := AddFavorite(f)
 	if err != nil {
 		t.Log(err.Error())
 	}
 }
 
 func TestFavorite_DeleteFavorite(t *testing.T) {
-	err := DeleteFavorite(1, 2)
+	err := RemoveFavorite(1, 2)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -42,4 +42,11 @@ func TestFavorite_GetFavoriteListByUserID(t *testing.T) {
 
 func TestFavorite_IsFavorite(t *testing.T) {
 	t.Log(IsFavorite(1, 2))
+}
+
+func TestTemp(t *testing.T) {
+	deleteCache()
+	TestFavorite_InsertFavorite(t)
+
+	TestFavorite_GetFavoriteListByUserID(t)
 }
