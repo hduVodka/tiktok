@@ -53,7 +53,6 @@ func Publish(c *gin.Context) {
 			StatusCode: -1,
 			StatusMsg:  fmt.Sprintf("internal server error:%v", err),
 		})
-		log.Error(err)
 		return
 	}
 

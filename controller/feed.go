@@ -12,8 +12,8 @@ import (
 
 type FeedResp struct {
 	Resp
-	VideoList []dto.Video `json:"videoList,omitempty"`
-	NextTime  int64       `json:"nextTime,omitempty"`
+	VideoList []dto.Video `json:"video_list,omitempty"`
+	NextTime  int64       `json:"next_time,omitempty"`
 }
 
 func Feed(c *gin.Context) {
