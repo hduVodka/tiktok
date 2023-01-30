@@ -62,8 +62,8 @@ func (c *Comment) DeleteComment() error {
 }
 
 // GetCommentListByVideoId 获取评论列表
-func GetCommentListByVideoId(videoId uint) ([]*Comment, error) {
-	var comments []*Comment
+func GetCommentListByVideoId(videoId uint) ([]Comment, error) {
+	var comments []Comment
 	if err := db.Raw("SELECT v.* FROM comments AS v WHERE v.video_id = ? AND v.deleted_at IS NULL", videoId).Scan(&comments).Error; err != nil {
 		log.Error("get comments list error:", err)
 		return nil, err
