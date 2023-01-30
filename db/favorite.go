@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,7 +12,8 @@ import (
 )
 
 const favoriteVideoKey = "fvk"
-const favoriteCountKey = "fck"
+
+//const favoriteCountKey = "fck"
 
 // 用 |作分隔符
 const separator = "|"
@@ -19,19 +21,16 @@ const separator = "|"
 func InsertFavorite(f *models.Favorite) error {
 	res, err := rdb.HGet(context.Background(), favoriteVideoKey,
 		fmt.Sprintf("%d%s%d", f.UserID, separator, f.VideoID)).Result()
+
+	if err == nil && res == "1" {
+		return errors.New("已经点赞过了")
+	}
+
 	// 字段不存在或者字段值为0
-	if err != nil || res == "0" {
-		if err := rdb.HSet(context.Background(), favoriteVideoKey,
-			fmt.Sprintf("%d%s%d", f.UserID, separator, f.VideoID), 1).Err(); err != nil {
-			log.Error("set cache error: ", err)
-			return err
-		}
-		//if err = rdb.HIncrBy(context.Background(),
-		//	favoriteCountKey,strconv.FormatUint(uint64(f.VideoID),10),
-		//	1).Err();err != nil{
-		//	log.Error("incr count error: ", err)
-		//	return err
-		//}
+	if err := rdb.HSet(context.Background(), favoriteVideoKey,
+		fmt.Sprintf("%d%s%d", f.UserID, separator, f.VideoID), 1).Err(); err != nil {
+		log.Error("set cache error: ", err)
+		return err
 	}
 
 	return nil
@@ -40,19 +39,16 @@ func InsertFavorite(f *models.Favorite) error {
 func DeleteFavorite(userId, videoId uint) error {
 	res, err := rdb.HGet(context.Background(), favoriteVideoKey,
 		fmt.Sprintf("%d%s%d", userId, separator, videoId)).Result()
+
+	if err != nil || res == "0" {
+		return errors.New("还没有点赞过")
+	}
+
 	// 字段存在且字段值为1
-	if err == nil && res == "1" {
-		if err := rdb.HSet(context.Background(), favoriteVideoKey,
-			fmt.Sprintf("%d%s%d", userId, separator, videoId), 0).Err(); err != nil {
-			log.Error("set cache error: ", err)
-			return err
-		}
-		//if err = rdb.HIncrBy(context.Background(),
-		//	favoriteCountKey,strconv.FormatUint(uint64(videoId),10),
-		//	-1).Err();err != nil{
-		//	log.Error("incr count error: ", err)
-		//	return err
-		//}
+	if err := rdb.HSet(context.Background(), favoriteVideoKey,
+		fmt.Sprintf("%d%s%d", userId, separator, videoId), 0).Err(); err != nil {
+		log.Error("set cache error: ", err)
+		return err
 	}
 
 	return nil
@@ -94,17 +90,6 @@ func IsFavorite(userId, videoId uint) (bool, error) {
 	}
 	return count > 0, nil
 }
-
-//func CountFavoriteByID(videoId uint) (int64, error) {
-//	var res string
-//	var err error
-//	if res,err = rdb.HGet(context.Background(),favoriteCountKey, strconv.FormatUint(uint64(videoId), 10)).
-//		Result();err != nil{
-//			log.Error("get count error: ", err)
-//			return 0,err
-//	}
-//	return strconv.ParseInt(res,10,64)
-//}
 
 func updateDB() error {
 	result, err := rdb.HGetAll(context.Background(), favoriteVideoKey).Result()
