@@ -3,27 +3,26 @@ package interactive
 import (
 	"context"
 	"errors"
-	"net/http"
 	"tiktok/db"
 	"tiktok/dto"
 	"tiktok/models"
 )
 
 // CommentAction 写/改/删评论操作
-func CommentAction(comment *models.Comment, actionType int) (int, error) {
+func CommentAction(comment *models.Comment, actionType int) error {
 	// 评论
 	if actionType == 1 {
 		if err := db.InsertComment(comment); err != nil {
-			return http.StatusInternalServerError, errors.New("评论失败")
+			return errors.New("评论失败")
 		}
-		return http.StatusOK, nil
+		return nil
 	} else if actionType == 2 {
 		if err := db.DeleteComment(comment); err != nil {
-			return http.StatusInternalServerError, errors.New("取消评论失败")
+			return errors.New("取消评论失败")
 		}
-		return http.StatusOK, nil
+		return nil
 	} else {
-		return http.StatusBadRequest, errors.New("请求参数错误")
+		return errors.New("请求参数错误")
 	}
 }
 

@@ -19,16 +19,16 @@ func CommentAction(c *gin.Context) {
 
 	actionType, err := strconv.Atoi(c.Query("action_type"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Resp{
-			400,
+		c.JSON(http.StatusOK, Resp{
+			-1,
 			ErrInvalidParams,
 		})
 		return
 	}
 	videoId, err := strconv.Atoi(c.Query("video_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Resp{
-			400,
+		c.JSON(http.StatusOK, Resp{
+			-1,
 			ErrInvalidParams,
 		})
 		return
@@ -41,14 +41,14 @@ func CommentAction(c *gin.Context) {
 		UserID:  userId,
 		Content: content,
 	}
-	if code, err := interactive.CommentAction(comment, actionType); err != nil {
-		c.JSON(code, Resp{
-			code,
+	if err := interactive.CommentAction(comment, actionType); err != nil {
+		c.JSON(http.StatusOK, Resp{
+			-1,
 			err.Error(),
 		})
 	} else {
-		c.JSON(code, Resp{
-			code,
+		c.JSON(http.StatusOK, Resp{
+			0,
 			"操作成功",
 		})
 	}
@@ -57,15 +57,15 @@ func CommentAction(c *gin.Context) {
 func CommentList(c *gin.Context) {
 	videoId, err := strconv.ParseUint(c.Query("video_id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Resp{
-			400,
+		c.JSON(http.StatusOK, Resp{
+			-1,
 			ErrInvalidParams,
 		})
 	}
 
 	if commentList, err := interactive.CommentList(c, uint(videoId)); err != nil {
-		c.JSON(http.StatusInternalServerError, Resp{
-			500,
+		c.JSON(http.StatusOK, Resp{
+			-1,
 			"获取评论列表失败",
 		})
 	} else {
