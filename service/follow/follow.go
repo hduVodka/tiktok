@@ -11,6 +11,11 @@ import (
 func RelationAction(ctx context.Context, toUserId uint, actionType int) error {
 	userId := ctx.Value("userId").(uint)
 	exist := db.IsFollow(ctx, userId, toUserId)
+
+	if exist && actionType == 1 || !exist && actionType == 2 {
+		return nil
+	}
+
 	if actionType == 1 && !exist {
 		return db.InsertFollow(ctx, userId, toUserId)
 	}
