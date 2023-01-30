@@ -1,5 +1,5 @@
 server:
-  mysql_source: "root@localhost/tiktok"
+  mysql_source: "root@localhost/tiktok?parseTime=true&loc=Local"
   port: 25010
   host: "localhost:25010"
   redis:
@@ -10,7 +10,9 @@ auth:
   # define the secret key
   jwt_key: ""
 
-
-video:
-  # left it empty to get from path
-  ffmpeg: ""
+# tencent cloud cos
+bucket:
+  url: ""
+  secret:
+    id: ""
+    key: ""
