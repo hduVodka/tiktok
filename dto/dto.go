@@ -23,6 +23,13 @@ type Comment struct {
 	Id      uint   `json:"id"`
 	User    User   `json:"user"`
 	Content string `json:"content"`
-	//mm-dd
+	// mm-dd
 	CreateDate string `json:"create_date"`
+}
+
+type Message struct {
+	Id      uint   `json:"id"`
+	Content string `json:"content"`
+	// yyyy-MM-dd HH:MM:ss
+	CreateTime string `json:"create_time"`
 }

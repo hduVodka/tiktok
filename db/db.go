@@ -28,7 +28,7 @@ func ModelInit() {
 		log.Fatalf("fail to connect mysql:%v", err)
 	}
 	db = database
-	if err := db.AutoMigrate(&models.User{}, &models.Video{}, &models.Favorite{}, &models.Comment{}, &models.Follow{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Video{}, &models.Favorite{}, &models.Comment{}, &models.Follow{}, &models.Message{}); err != nil {
 		log.Fatalf("fail to migrate models:%v", err)
 	}
 }
