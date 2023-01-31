@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 	"tiktok/config"
+	"tiktok/db"
 	"tiktok/models"
 )
 
 func init() {
 	config.Init()
-	models.Init()
+	db.Init()
 }
 
 func TestCommentAction(t *testing.T) {
@@ -25,8 +26,7 @@ func TestCommentAction(t *testing.T) {
 	 t.Error(err)
 	}*/
 
-	status, err := CommentAction(c, 2)
-	fmt.Println(status)
+	err := CommentAction(c, 2)
 	if err != nil {
 		t.Error(err)
 	}

@@ -11,7 +11,7 @@ func init() {
 	// 修改工作目录，解决配置文件读取问题
 	os.Chdir("../")
 	config.Init()
-	models.Init()
+	Init()
 }
 
 func TestFavorite_InsertFavorite(t *testing.T) {

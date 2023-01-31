@@ -3,12 +3,13 @@ package interactive
 import (
 	"testing"
 	"tiktok/config"
+	"tiktok/db"
 	"tiktok/models"
 )
 
 func init() {
 	config.Init()
-	models.Init()
+	db.Init()
 }
 
 func TestFavoriteAction(t *testing.T) {

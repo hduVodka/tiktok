@@ -11,7 +11,7 @@ import (
 func init() {
 	os.Chdir("../")
 	config.Init()
-	models.Init()
+	Init()
 }
 
 func TestComment_InsertComment(t *testing.T) {
