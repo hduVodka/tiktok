@@ -11,6 +11,9 @@ import (
 func Init() {
 	// load jwt secret
 	jwtSecret = []byte(config.Conf.GetString("auth.jwt_key"))
+
+	// init cos client
+	InitCos()
 }
 
 // sha256加密

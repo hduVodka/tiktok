@@ -12,7 +12,7 @@ import (
 
 type PublishListResp struct {
 	Resp
-	VideoList []dto.Video `json:"videoList,omitempty"`
+	VideoList []dto.Video `json:"video_list,omitempty"`
 }
 
 func Publish(c *gin.Context) {

@@ -34,7 +34,7 @@ func InsertVideo(video *models.Video) error {
 
 func GetVideoListById(id uint) ([]models.Video, error) {
 	var list []models.Video
-	res := db.Where("author_id=?", id).Find(&list)
+	res := db.Where("author_id = ?", id).Find(&list)
 	if res.Error != nil {
 		log.Errorf("get video list fail:%v", res.Error)
 		return nil, ErrDatabase

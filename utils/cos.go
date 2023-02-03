@@ -1,4 +1,4 @@
-package video
+package utils
 
 import (
 	"context"
@@ -17,7 +17,7 @@ var cosClient *cos.Client
 var ak string
 var sk string
 
-func Init() {
+func InitCos() {
 	u, err := url.Parse(config.Conf.GetString("bucket.url"))
 	if err != nil {
 		log.Fatalln(err)
@@ -32,7 +32,7 @@ func Init() {
 	sk = config.Conf.GetString("bucket.secret.key")
 }
 
-func isExist(ctx context.Context, path string) bool {
+func IsExist(ctx context.Context, path string) bool {
 	ok, err := cosClient.Object.IsExist(ctx, path)
 	if err != nil {
 		log.Errorf("fail to check if object exist:%v", err)
@@ -48,7 +48,7 @@ func Upload(ctx context.Context, ext string, data io.Reader) (string, error) {
 	for {
 		uu = uuid.New()
 		filename = fmt.Sprintf("upload/%s%s", uu.String(), ext)
-		if !isExist(ctx, filename) {
+		if !IsExist(ctx, filename) {
 			break
 		}
 	}

@@ -1,8 +1,10 @@
 package interactive
 
 import (
+	"context"
 	"errors"
 	"tiktok/db"
+	"tiktok/dto"
 	"tiktok/models"
 )
 
@@ -26,14 +28,11 @@ func FavoriteAction(favorite *models.Favorite, actionType int) (int, error) {
 	}
 }
 
-func FavoriteList(favorite *models.Favorite) ([]models.Video, error) {
-	var videoList []models.Video
-	var err error
-
-	if videoList, err = db.GetFavoriteListByUserID(favorite.UserID); err != nil {
+func FavoriteList(ctx context.Context, userId uint) ([]dto.Video, error) {
+	videoList, err := db.GetFavoriteListByUserID(userId)
+	if err != nil {
 		return nil, err
 	}
-
-	return videoList, nil
+	return dto.FromVideoModels(ctx, userId, videoList)
 
 }

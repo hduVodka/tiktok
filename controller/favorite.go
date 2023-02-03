@@ -4,13 +4,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"tiktok/dto"
 	"tiktok/models"
 	"tiktok/service/interactive"
 )
 
 type FavoriteListResp struct {
 	Resp
-	VideoList []models.Video `json:"video_list"`
+	VideoList []dto.Video `json:"video_list"`
 }
 
 func FavoriteAction(c *gin.Context) {
@@ -54,13 +55,9 @@ func FavoriteAction(c *gin.Context) {
 }
 
 func FavoriteList(c *gin.Context) {
-	userID := c.GetUint("userId")
+	userId := c.GetUint("userId")
 
-	favorite := &models.Favorite{
-		UserID: userID,
-	}
-
-	if videoList, err := interactive.FavoriteList(favorite); err != nil {
+	if videoList, err := interactive.FavoriteList(c, userId); err != nil {
 		c.JSON(http.StatusOK, Resp{
 			StatusCode: 500,
 			StatusMsg:  "获取点赞列表失败",
