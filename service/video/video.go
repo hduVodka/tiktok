@@ -54,18 +54,16 @@ func Publish(ctx context.Context, file multipart.File, ext string, title string)
 		}
 
 		// 这里应该用callback做但是现在开发环境没公网
-		go func() {
-			for {
-				time.Sleep(time.Second * 10)
-				if utils.IsExist(context.Background(), video.CoverUrl) {
-					break
-				}
+		for {
+			time.Sleep(time.Second * 10)
+			if utils.IsExist(context.Background(), video.CoverUrl) {
+				break
 			}
-			err = db.InsertVideo(video)
-			if err != nil {
-				log.Errorln(err)
-			}
-		}()
+		}
+		err = db.InsertVideo(video)
+		if err != nil {
+			log.Errorln(err)
+		}
 	}()
 }
 
