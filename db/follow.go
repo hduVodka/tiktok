@@ -32,7 +32,7 @@ func InsertFollow(ctx context.Context, userId uint, toUserId uint) error {
 }
 
 func DeleteFollow(ctx context.Context, userId uint, toUserId uint) error {
-	if err := db.Model(&models.Follow{}).Delete("user_id = ? AND to_user_id = ?", userId, toUserId).Error; err != nil {
+	if err := db.Where("user_id = ? AND to_user_id = ?", userId, toUserId).Delete(&models.Follow{}).Error; err != nil {
 		log.Error("delete follow error:", err)
 		return ErrDatabase
 	}
