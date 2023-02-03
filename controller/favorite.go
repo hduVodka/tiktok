@@ -41,17 +41,19 @@ func FavoriteAction(c *gin.Context) {
 		UserID:  userId,
 	}
 
-	if code, err := interactive.FavoriteAction(favorite, actionType); err != nil {
+	if err := interactive.FavoriteAction(favorite, actionType); err != nil {
 		c.JSON(http.StatusOK, Resp{
-			StatusCode: code,
+			StatusCode: -1,
 			StatusMsg:  err.Error(),
 		})
-	} else {
-		c.JSON(http.StatusOK, Resp{
-			StatusCode: code,
-			StatusMsg:  "操作成功",
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, Resp{
+		StatusCode: 0,
+		StatusMsg:  "ok",
+	})
+
 }
 
 func FavoriteList(c *gin.Context) {

@@ -42,8 +42,8 @@ func GetVideoListById(id uint) ([]models.Video, error) {
 	return list, nil
 }
 
-func IncreaseVideoFavoriteCount(id uint) error {
-	res := db.Model(&models.Video{}).Where("id=?", id).Update("favorite_count", gorm.Expr("favorite_count+1"))
+func IncreaseVideoFavoriteCount(id uint, count int) error {
+	res := db.Model(&models.Video{}).Where("id=?", id).Update("favorite_count", gorm.Expr("favorite_count + ?", count))
 	if res.Error != nil {
 		log.Errorf("increase video favorite count fail:%v", res.Error)
 		return ErrDatabase
@@ -51,8 +51,8 @@ func IncreaseVideoFavoriteCount(id uint) error {
 	return nil
 }
 
-func IncreaseVideoCommentCount(id uint) error {
-	res := db.Model(&models.Video{}).Where("id=?", id).Update("comment_count", gorm.Expr("comment_count+1"))
+func IncreaseVideoCommentCount(id uint, count int) error {
+	res := db.Model(&models.Video{}).Where("id=?", id).Update("comment_count", gorm.Expr("comment_count + ?", count))
 	if res.Error != nil {
 		log.Errorf("increase video comment count fail:%v", res.Error)
 		return ErrDatabase
