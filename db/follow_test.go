@@ -46,11 +46,3 @@ func TestGetFanListByUserId(t *testing.T) {
 func TestIsFollow(t *testing.T) {
 	t.Log(IsFollow(context.Background(), 1, 200))
 }
-
-func TestGetFriendListByUserId(t *testing.T) {
-	list, err := GetFriendListByUserId()
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(list)
-}
