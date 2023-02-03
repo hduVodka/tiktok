@@ -20,7 +20,7 @@ func IsFollow(ctx context.Context, userId uint, toUserId uint) bool {
 
 func InsertFollow(ctx context.Context, userId uint, toUserId uint) error {
 	if err := db.Clauses(clause.OnConflict{
-		DoNothing: true,
+		DoUpdates: clause.AssignmentColumns([]string{"deleted_at", "updated_at"}),
 	}).Create(&models.Follow{
 		UserId:   userId,
 		ToUserId: toUserId,
