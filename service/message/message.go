@@ -12,7 +12,7 @@ func GetList(ctx context.Context, userId uint, toUserId uint) ([]dto.Message, er
 	if err != nil {
 		return nil, err
 	}
-	return arrayModel2Dto(message), nil
+	return dto.FromMessageModels(message), nil
 }
 
 func Send(ctx context.Context, userId, toUserId uint, content string) error {
@@ -21,16 +21,4 @@ func Send(ctx context.Context, userId, toUserId uint, content string) error {
 		ToUserId: toUserId,
 		Content:  content,
 	})
-}
-
-func arrayModel2Dto(models []models.Message) []dto.Message {
-	messageList := make([]dto.Message, len(models))
-	for i, v := range models {
-		messageList[i] = dto.Message{
-			Id:         v.ID,
-			Content:    v.Content,
-			CreateTime: v.CreatedAt.Format("2006-01-02 15:04:05"),
-		}
-	}
-	return messageList
 }

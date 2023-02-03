@@ -35,3 +35,17 @@ func FromVideoModels(ctx context.Context, userId uint, videos []models.Video) ([
 	}
 	return res, nil
 }
+
+func FromMessageModels(models []models.Message) []Message {
+	messageList := make([]Message, len(models))
+	for i, v := range models {
+		messageList[i] = Message{
+			Id:         v.ID,
+			Content:    v.Content,
+			FromUserId: v.UserId,
+			ToUserId:   v.ToUserId,
+			CreateTime: v.CreatedAt.Format("2006-01-02 15:04:05"),
+		}
+	}
+	return messageList
+}
