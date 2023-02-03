@@ -1,6 +1,7 @@
 package interactive
 
 import (
+	"context"
 	"testing"
 	"tiktok/config"
 	"tiktok/db"
@@ -17,17 +18,14 @@ func TestFavoriteAction(t *testing.T) {
 		UserID:  1,
 		VideoID: 1,
 	}
-	_, err := FavoriteAction(f, 1)
+	err := FavoriteAction(f, 1)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
 func TestFavoriteList(t *testing.T) {
-	f := &models.Favorite{
-		UserID: 1,
-	}
-	vs, err := FavoriteList(f)
+	vs, err := FavoriteList(context.Background(), 1)
 	if err != nil {
 		t.Error(err)
 	}
