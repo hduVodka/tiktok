@@ -47,18 +47,7 @@ func Publish(c *gin.Context) {
 
 	ext := path.Ext(fh.Filename)
 
-	file, err := fh.Open()
-	if err != nil {
-		c.JSON(http.StatusOK, Resp{
-			StatusCode: -1,
-			StatusMsg:  ErrInvalidParams,
-		})
-		log.Error(err)
-		return
-	}
-	defer file.Close()
-
-	video.Publish(c, file, ext, title)
+	video.Publish(c, fh, ext, title)
 
 	c.JSON(http.StatusOK, Resp{
 		StatusCode: 0,

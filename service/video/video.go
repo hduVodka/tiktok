@@ -39,12 +39,18 @@ func GetFeed(ctx context.Context, latestTime time.Time) ([]dto.Video, time.Time,
 	return res, oldest, nil
 }
 
-func Publish(ctx context.Context, file multipart.File, ext string, title string) {
+func Publish(ctx context.Context, fh *multipart.FileHeader, ext string, title string) {
 	// 大文件上传需要大量时间，不尽早返回客户端会超时
 	go func() {
+		file, err := fh.Open()
+		if err != nil {
+			log.Errorln("fail to open uploaded file")
+			return
+		}
+		defer file.Close()
 		filename, err := utils.Upload(ctx, ext, file)
 		if err != nil {
-			log.Fatalln(err)
+			log.Errorln(err)
 		}
 		video := &models.Video{
 			AuthorId: ctx.Value("userId").(uint),
