@@ -6,6 +6,7 @@ type User struct {
 	FollowCount   uint   `json:"follow_count"`
 	FollowerCount uint   `json:"follower_count"`
 	IsFollow      bool   `json:"is_follow"`
+	Avatar        string `json:"avatar,omitempty"`
 }
 
 type Video struct {
@@ -34,4 +35,16 @@ type Message struct {
 	ToUserId   uint   `json:"to_user_id"`
 	// yyyy-MM-dd HH:MM:ss
 	CreateTime string `json:"create_time"`
+}
+
+const (
+	RECEIVE = 0
+	SEND    = 1
+)
+
+type FriendUser struct {
+	User
+	Message string `json:"message"`
+	// message消息的类型，0 => 当前请求用户接收的消息， 1 => 当前请求用户发送的消息
+	MsgType int64 `json:"msgType"`
 }

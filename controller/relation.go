@@ -13,6 +13,11 @@ type ListResp struct {
 	List []dto.User `json:"user_list"`
 }
 
+type FriendResp struct {
+	Resp
+	List []dto.FriendUser `json:"user_list"`
+}
+
 func RelationAction(c *gin.Context) {
 	actionType, err := strconv.Atoi(c.Query("action_type"))
 	if err != nil {
@@ -85,7 +90,7 @@ func FollowerList(c *gin.Context) {
 }
 
 func FriendList(c *gin.Context) {
-	friendList, err := follow.FriendList(c)
+	friendList, err := follow.FriendList(c, c.GetUint("userId"))
 	if err != nil {
 		c.JSON(http.StatusOK, Resp{
 			StatusCode: -1,
@@ -94,7 +99,7 @@ func FriendList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ListResp{
+	c.JSON(http.StatusOK, FriendResp{
 		Resp: Resp{
 			StatusCode: 0,
 			StatusMsg:  "success",

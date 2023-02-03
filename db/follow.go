@@ -66,8 +66,3 @@ func GetFanListByUserId(ctx context.Context, userId uint) ([]models.User, error)
 	}
 	return user, nil
 }
-
-func GetFriendListByUserId() ([]models.User, error) {
-	//todo: get friend list
-	return []models.User{}, nil
-}

@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"math/rand"
+	"strings"
 	"tiktok/config"
 	"time"
 )
@@ -11,7 +13,8 @@ import (
 func Init() {
 	// load jwt secret
 	jwtSecret = []byte(config.Conf.GetString("auth.jwt_key"))
-
+	// rand
+	rand.Seed(time.Now().UnixMicro())
 	// init cos client
 	InitCos()
 }
@@ -39,4 +42,9 @@ func GenerateSalt() string {
 		cache >>= 6
 	}
 	return string(b[:])
+}
+
+func Gravatar(email string) string {
+	hash := md5.Sum([]byte(strings.ToLower(strings.TrimSpace(email))))
+	return "https://www.gravatar.com/avatar/" + hex.EncodeToString(hash[:])
 }
