@@ -14,16 +14,10 @@ const CancelFavorite = 2
 func FavoriteAction(favorite *models.Favorite, actionType int) error {
 	// 执行点赞或取消点赞操作
 	if actionType == AddFavorite {
-		if err := db.AddFavorite(favorite); err != nil {
-			return err
-		}
-		return db.IncreaseVideoFavoriteCount(favorite.VideoID, 1)
+		return db.AddFavorite(favorite)
 	}
 	if actionType == CancelFavorite {
-		if err := db.RemoveFavorite(favorite.UserID, favorite.VideoID); err != nil {
-			return errors.New("取消点赞失败")
-		}
-		return db.IncreaseVideoFavoriteCount(favorite.VideoID, -1)
+		return db.RemoveFavorite(favorite.UserID, favorite.VideoID)
 	}
 	return errors.New("请求参数错误")
 }

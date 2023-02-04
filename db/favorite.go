@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"errors"
-	"fmt"
+	"gorm.io/gorm"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,52 +19,78 @@ const favoriteVideoKey = "fvk"
 const separator = "|"
 
 func AddFavorite(f *models.Favorite) error {
-	res, err := rdb.HGet(context.Background(), favoriteVideoKey,
-		fmt.Sprintf("%d%s%d", f.UserID, separator, f.VideoID)).Result()
+	/*
+		res, err := rdb.HGet(context.Background(), favoriteVideoKey,
+			fmt.Sprintf("%d%s%d", f.UserID, separator, f.VideoID)).Result()
 
-	if err == nil && res == "1" {
-		return errors.New("已经点赞过了")
+		if err == nil && res == "1" {
+			return errors.New("已经点赞过了")
+		}
+
+		// 字段不存在或者字段值为0
+		if err := rdb.HSet(context.Background(), favoriteVideoKey,
+			fmt.Sprintf("%d%s%d", f.UserID, separator, f.VideoID), 1).Err(); err != nil {
+			log.Error("set cache error: ", err)
+			return err
+		}
+
+		return nil
+	*/
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		res := tx.Where("user_id = ? AND video_id = ?", f.UserID, f.VideoID).FirstOrCreate(&f)
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected == 0 {
+			return nil
+		}
+		return IncreaseVideoFavoriteCount(f.VideoID, 1)
+	}); err != nil {
+		log.Errorln("create favorite error: ", err)
+		return ErrDatabase
 	}
-
-	// 字段不存在或者字段值为0
-	if err := rdb.HSet(context.Background(), favoriteVideoKey,
-		fmt.Sprintf("%d%s%d", f.UserID, separator, f.VideoID), 1).Err(); err != nil {
-		log.Error("set cache error: ", err)
-		return err
-	}
-
 	return nil
 }
 
 func RemoveFavorite(userId, videoId uint) error {
-	res, err := rdb.HGet(context.Background(), favoriteVideoKey,
-		fmt.Sprintf("%d%s%d", userId, separator, videoId)).Result()
+	/*
+		res, err := rdb.HGet(context.Background(), favoriteVideoKey,
+			fmt.Sprintf("%d%s%d", userId, separator, videoId)).Result()
 
-	if err != nil || res == "0" {
-		return errors.New("还没有点赞过")
+		if err != nil || res == "0" {
+			return errors.New("还没有点赞过")
+		}
+
+		// 字段存在且字段值为1
+		if err := rdb.HSet(context.Background(), favoriteVideoKey,
+			fmt.Sprintf("%d%s%d", userId, separator, videoId), 0).Err(); err != nil {
+			log.Error("set cache error: ", err)
+			return err
+		}
+
+		return nil
+	*/
+	if err := db.Where("user_id = ? AND video_id = ?", userId, videoId).Delete(&models.Favorite{}).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		log.Errorln("delete favorite error: ", err)
+		return ErrDatabase
 	}
-
-	// 字段存在且字段值为1
-	if err := rdb.HSet(context.Background(), favoriteVideoKey,
-		fmt.Sprintf("%d%s%d", userId, separator, videoId), 0).Err(); err != nil {
-		log.Error("set cache error: ", err)
-		return err
-	}
-
-	return nil
+	return IncreaseVideoFavoriteCount(videoId, -1)
 }
 
 func GetFavoriteListByUserID(userId uint) ([]models.Video, error) {
 
-	if err := updateDB(); err != nil {
-		return nil, err
-	}
+	//if err := updateDB(); err != nil {
+	//	return nil, err
+	//}
 
 	var videos []models.Video
-	if err := db.Model(&models.Video{}).
-		Joins("join favorites AS f on f.video_id = videos.id").
-		Where("f.user_id = ? AND f.deleted_at IS NULL", userId).
-		Order("f.created_at desc").
+	if err := db.Where("id in (?)",
+		db.Model(&models.Favorite{}).
+			Select("video_id").
+			Where("user_id = ?", userId)).
 		Find(&videos).Error; err != nil {
 		log.Error("get favorite list error: ", err)
 		return nil, err
