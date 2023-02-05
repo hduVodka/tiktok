@@ -1,26 +1,71 @@
 package db
 
 import (
+	"context"
+	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"tiktok/log"
 	"tiktok/models"
+	"tiktok/utils"
 	"time"
 )
 
-func GetFeedByTime(t time.Time) ([]models.Video, error) {
-	var list []models.Video
-	res := db.Limit(30).Order(clause.OrderByColumn{
-		Column: clause.Column{
-			Name: "created_at",
-		},
-		Desc: true,
-	}).Find(&list)
+func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
+
+	// get ids from cache
+	strIds, err := rdb.Do(ctx, "ZRANGE", "video:feed", t.UnixMilli(), 0, "BYSCORE", "REV", "limit", 0, 30).StringSlice()
+	if err != nil {
+		log.Errorf("get feed from cache fail:%v", err)
+		return nil, ErrDatabase
+	}
+
+	//todo: when out of cache, read from db
+
+	// get video from cache
+	var toGetFromDB []string
+	var videos []models.Video
+	for _, v := range strIds {
+		mp, err := rdb.HGetAll(ctx, "video:"+v).Result()
+		vd := utils.Scan[models.Video](mp)
+		if err != nil {
+			log.Errorf("get video from cache fail:%v", err)
+			continue
+		}
+		if vd.ID == 0 {
+			toGetFromDB = append(toGetFromDB, v)
+			continue
+		}
+		videos = append(videos, *vd)
+	}
+
+	if len(toGetFromDB) == 0 {
+		return videos, nil
+	}
+
+	// get uncached video from db
+	var dbVd []models.Video
+	res := db.Where("id in ?", toGetFromDB).
+		Limit(30).
+		Order(clause.OrderByColumn{
+			Column: clause.Column{
+				Name: "created_at",
+			},
+			Desc: true,
+		}).Find(&dbVd)
 	if res.Error != nil {
 		log.Errorf("get feed fail:%v", res.Error)
 		return nil, ErrDatabase
 	}
-	return list, nil
+
+	// set cache
+	for _, v := range dbVd {
+		if err := rdb.HSet(ctx, fmt.Sprintf("video:%d", v.ID), v).Err(); err != nil {
+			log.Error(err)
+		}
+	}
+
+	return append(videos, dbVd...), nil
 }
 
 func InsertVideo(video *models.Video) error {

@@ -16,6 +16,7 @@ var rdb *redis.Client
 func Init() {
 	ModelInit()
 	RedisInit()
+	CacheInit()
 }
 
 func ModelInit() {

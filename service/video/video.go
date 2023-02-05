@@ -13,7 +13,7 @@ import (
 )
 
 func GetFeed(ctx context.Context, latestTime time.Time) ([]dto.Video, time.Time, error) {
-	videos, err := db.GetFeedByTime(latestTime)
+	videos, err := db.GetFeedByTime(ctx, latestTime)
 	if err != nil {
 		return nil, time.Now(), err
 	}
