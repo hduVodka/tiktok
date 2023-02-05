@@ -27,11 +27,11 @@ func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
 	var videos []models.Video
 	for _, v := range strIds {
 		mp, err := rdb.HGetAll(ctx, "video:"+v).Result()
-		vd := utils.Scan[models.Video](mp)
 		if err != nil {
 			log.Errorf("get video from cache fail:%v", err)
 			continue
 		}
+		vd := utils.Scan[models.Video](mp)
 		if vd.ID == 0 {
 			toGetFromDB = append(toGetFromDB, v)
 			continue
