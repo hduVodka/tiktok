@@ -56,3 +56,7 @@ func Fatalf(format string, args ...interface{}) {
 func Fatalln(args ...interface{}) {
 	Logger.Fatalln(args)
 }
+
+func WithFiled(key string, value interface{}) *logrus.Entry {
+	return Logger.WithField(key, value)
+}
