@@ -63,6 +63,9 @@ func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
 		if err := rdb.HSet(ctx, fmt.Sprintf("video:%d", v.ID), v).Err(); err != nil {
 			log.Error(err)
 		}
+		if err := rdb.Expire(ctx, fmt.Sprintf("video:%d", v.ID), 3*time.Minute).Err(); err != nil {
+			log.Error(err)
+		}
 	}
 
 	return append(videos, dbVd...), nil

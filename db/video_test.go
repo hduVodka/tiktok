@@ -1,16 +1,16 @@
 package db
 
 import (
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"os"
+	"context"
 	"testing"
+	"tiktok/config"
 	"time"
 )
 
 func TestGetFeedByTime(t *testing.T) {
-	db, _ = gorm.Open(mysql.Open(os.Getenv("mysql_source")), &gorm.Config{})
-	feed, err := GetFeedByTime(time.Now())
+	config.Init()
+	Init()
+	feed, err := GetFeedByTime(context.Background(), time.Now())
 	if err != nil {
 		t.Error(err)
 		return
