@@ -4,23 +4,22 @@ import (
 	"context"
 	"fmt"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"tiktok/log"
 	"tiktok/models"
 	"tiktok/utils"
 	"time"
 )
 
+const FeedPageSize = 30
+
 func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
 
 	// get ids from cache
-	strIds, err := rdb.Do(ctx, "ZRANGE", "video:feed", t.UnixMilli(), 0, "BYSCORE", "REV", "limit", 0, 30).StringSlice()
+	strIds, err := rdb.Do(ctx, "ZRANGE", "video:feed", t.UnixMilli(), 0, "BYSCORE", "REV", "limit", 0, FeedPageSize).StringSlice()
 	if err != nil {
 		log.Errorf("get feed from cache fail:%v", err)
 		return nil, ErrDatabase
 	}
-
-	//todo: when out of cache, read from db
 
 	// get video from cache
 	var toGetFromDB []string
@@ -45,14 +44,7 @@ func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
 
 	// get uncached video from db
 	var dbVd []models.Video
-	res := db.Where("id in ?", toGetFromDB).
-		Limit(30).
-		Order(clause.OrderByColumn{
-			Column: clause.Column{
-				Name: "created_at",
-			},
-			Desc: true,
-		}).Find(&dbVd)
+	res := db.Where("id in ?", toGetFromDB).Find(&dbVd)
 	if res.Error != nil {
 		log.Errorf("get feed fail:%v", res.Error)
 		return nil, ErrDatabase

@@ -10,10 +10,10 @@ import (
 
 func CacheInit() {
 	// video cache
-	// video的缓存和其他不同，缓存100个新视频视频id，不需要过期
+	// video的缓存和其他不同，视频id全量缓存，不需要过期
 	// 用于feed接口
 	var videos []models.Video
-	if err := db.Order("created_at DESC").Limit(100).Find(&videos).Error; err != nil {
+	if err := db.Order("created_at DESC").Find(&videos).Error; err != nil {
 		log.Fatalln("init video cache fail", err)
 	}
 
