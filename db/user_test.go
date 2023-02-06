@@ -2,14 +2,8 @@ package db
 
 import (
 	"testing"
-	"tiktok/config"
 	"tiktok/models"
 )
-
-func init() {
-	config.Init()
-	Init()
-}
 
 func TestInsertUser(t *testing.T) {
 	user := &models.User{

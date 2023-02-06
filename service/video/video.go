@@ -66,7 +66,7 @@ func Publish(ctx context.Context, fh *multipart.FileHeader, ext string, title st
 				break
 			}
 		}
-		err = db.InsertVideo(video)
+		err = db.InsertVideo(ctx, video)
 		if err != nil {
 			log.Errorln(err)
 		}

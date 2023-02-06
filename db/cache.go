@@ -27,7 +27,6 @@ func CacheInit() {
 	if err := rdb.ZAdd(context.Background(), "video:feed", cache...).Err(); err != nil {
 		log.Fatalln("init video cache fail", err)
 	}
-
 }
 
 // UpdateCache 延时双删

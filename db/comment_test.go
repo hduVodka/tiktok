@@ -2,17 +2,9 @@ package db
 
 import (
 	"fmt"
-	"os"
 	"testing"
-	"tiktok/config"
 	"tiktok/models"
 )
-
-func init() {
-	os.Chdir("../")
-	config.Init()
-	Init()
-}
 
 func TestComment_InsertComment(t *testing.T) {
 	c := &models.Comment{

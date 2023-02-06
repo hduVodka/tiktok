@@ -3,13 +3,7 @@ package db
 import (
 	"context"
 	"testing"
-	"tiktok/config"
 )
-
-func init() {
-	config.Init()
-	Init()
-}
 
 func TestInsertFollow(t *testing.T) {
 	err := InsertFollow(context.Background(), 1, 200)
