@@ -26,7 +26,7 @@ func TestCommentAction(t *testing.T) {
 	 t.Error(err)
 	}*/
 
-	err := CommentAction(c, 2)
+	err := CommentAction(context.Background(), c, 2)
 	if err != nil {
 		t.Error(err)
 	}

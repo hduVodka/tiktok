@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"testing"
 	"tiktok/models"
 )
@@ -10,14 +11,14 @@ func TestFavorite_InsertFavorite(t *testing.T) {
 		UserID:  1,
 		VideoID: 2,
 	}
-	err := AddFavorite(f)
+	err := AddFavorite(context.Background(), f)
 	if err != nil {
 		t.Log(err.Error())
 	}
 }
 
 func TestFavorite_DeleteFavorite(t *testing.T) {
-	err := RemoveFavorite(1, 2)
+	err := RemoveFavorite(context.Background(), 1, 2)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -33,11 +34,4 @@ func TestFavorite_GetFavoriteListByUserID(t *testing.T) {
 
 func TestFavorite_IsFavorite(t *testing.T) {
 	t.Log(IsFavorite(1, 2))
-}
-
-func TestTemp(t *testing.T) {
-	deleteCache()
-	TestFavorite_InsertFavorite(t)
-
-	TestFavorite_GetFavoriteListByUserID(t)
 }

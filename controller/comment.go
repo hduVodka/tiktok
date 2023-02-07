@@ -41,7 +41,7 @@ func CommentAction(c *gin.Context) {
 		UserID:  userId,
 		Content: content,
 	}
-	if err := interactive.CommentAction(comment, actionType); err != nil {
+	if err := interactive.CommentAction(c, comment, actionType); err != nil {
 		c.JSON(http.StatusOK, Resp{
 			-1,
 			err.Error(),

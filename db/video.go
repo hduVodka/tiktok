@@ -14,7 +14,6 @@ import (
 const FeedPageSize = 30
 
 func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
-
 	// get ids from cache
 	strIds, err := rdb.Do(ctx, "ZRANGE", "video:feed", t.UnixMilli(), 0, "BYSCORE", "REV", "limit", 0, FeedPageSize).StringSlice()
 	if err != nil {
@@ -90,19 +89,27 @@ func GetVideoListById(id uint) ([]models.Video, error) {
 	return list, nil
 }
 
-func IncreaseVideoFavoriteCount(id uint, count int) error {
+func IncreaseVideoFavoriteCount(ctx context.Context, id uint, count int) error {
 	res := db.Model(&models.Video{}).Where("id=?", id).Update("favorite_count", gorm.Expr("favorite_count + ?", count))
 	if res.Error != nil {
 		log.Errorf("increase video favorite count fail:%v", res.Error)
 		return ErrDatabase
 	}
+	if err := rdb.HIncrBy(ctx, fmt.Sprintf("video:%d", id), "FavoriteCount", int64(count)).Err(); err != nil {
+		log.Errorf("increase video favorite count in cache fail:%v", err)
+		return ErrDatabase
+	}
 	return nil
 }
 
-func IncreaseVideoCommentCount(id uint, count int) error {
+func IncreaseVideoCommentCount(ctx context.Context, id uint, count int) error {
 	res := db.Model(&models.Video{}).Where("id=?", id).Update("comment_count", gorm.Expr("comment_count + ?", count))
 	if res.Error != nil {
 		log.Errorf("increase video comment count fail:%v", res.Error)
+		return ErrDatabase
+	}
+	if err := rdb.HIncrBy(ctx, fmt.Sprintf("video:%d", id), "CommentCount", int64(count)).Err(); err != nil {
+		log.Errorf("increase video comment count in cache fail:%v", err)
 		return ErrDatabase
 	}
 	return nil

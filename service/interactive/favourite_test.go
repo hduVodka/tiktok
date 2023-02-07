@@ -18,7 +18,7 @@ func TestFavoriteAction(t *testing.T) {
 		UserID:  1,
 		VideoID: 1,
 	}
-	err := FavoriteAction(f, 1)
+	err := FavoriteAction(context.Background(), f, 1)
 	if err != nil {
 		t.Error(err)
 	}

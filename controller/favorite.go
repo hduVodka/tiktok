@@ -41,7 +41,7 @@ func FavoriteAction(c *gin.Context) {
 		UserID:  userId,
 	}
 
-	if err := interactive.FavoriteAction(favorite, actionType); err != nil {
+	if err := interactive.FavoriteAction(c, favorite, actionType); err != nil {
 		c.JSON(http.StatusOK, Resp{
 			StatusCode: -1,
 			StatusMsg:  err.Error(),

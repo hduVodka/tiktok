@@ -11,13 +11,13 @@ import (
 const AddFavorite = 1
 const CancelFavorite = 2
 
-func FavoriteAction(favorite *models.Favorite, actionType int) error {
+func FavoriteAction(ctx context.Context, favorite *models.Favorite, actionType int) error {
 	// 执行点赞或取消点赞操作
 	if actionType == AddFavorite {
-		return db.AddFavorite(favorite)
+		return db.AddFavorite(ctx, favorite)
 	}
 	if actionType == CancelFavorite {
-		return db.RemoveFavorite(favorite.UserID, favorite.VideoID)
+		return db.RemoveFavorite(ctx, favorite.UserID, favorite.VideoID)
 	}
 	return errors.New("请求参数错误")
 }

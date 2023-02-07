@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
@@ -59,4 +60,8 @@ func Fatalln(args ...interface{}) {
 
 func WithFiled(key string, value interface{}) *logrus.Entry {
 	return Logger.WithField(key, value)
+}
+
+func WithContext(ctx context.Context) *logrus.Entry {
+	return Logger.WithContext(ctx)
 }
