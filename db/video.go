@@ -7,15 +7,15 @@ import (
 	"gorm.io/gorm"
 	"tiktok/log"
 	"tiktok/models"
-	"tiktok/utils"
 	"time"
 )
 
-const FeedPageSize = 30
+const feedPageSize = 30
+const expireTime = 5 * time.Minute
 
 func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
 	// get ids from cache
-	strIds, err := rdb.Do(ctx, "ZRANGE", "video:feed", t.UnixMilli(), 0, "BYSCORE", "REV", "limit", 0, FeedPageSize).StringSlice()
+	strIds, err := rdb.Do(ctx, "ZRANGE", "video:feed", t.UnixMilli(), 0, "BYSCORE", "REV", "limit", 0, feedPageSize).StringSlice()
 	if err != nil {
 		log.Errorf("get feed ids from cache fail:%v", err)
 		return nil, ErrDatabase
@@ -25,12 +25,7 @@ func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
 	var toGetFromDB []string
 	var videos []models.Video
 	for _, v := range strIds {
-		mp, err := rdb.HGetAll(ctx, "video:"+v).Result()
-		if err != nil {
-			log.Errorf("get video from cache fail:%v", err)
-			continue
-		}
-		vd := utils.Scan[models.Video](mp)
+		vd := getHashCache[models.Video](ctx, fmt.Sprintf("video:%s", v))
 		if vd.ID == 0 {
 			toGetFromDB = append(toGetFromDB, v)
 			continue
@@ -50,15 +45,12 @@ func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
 		return nil, ErrDatabase
 	}
 
-	// set cache
-	for _, v := range dbVd {
-		if err := rdb.HSet(ctx, fmt.Sprintf("video:%d", v.ID), v).Err(); err != nil {
-			log.Errorf("set cache fail: %v", err)
+	go func() {
+		// set cache
+		for _, v := range dbVd {
+			setHashCache(ctx, fmt.Sprintf("video:%d", v.ID), v, expireTime)
 		}
-		if err := rdb.Expire(ctx, fmt.Sprintf("video:%d", v.ID), 3*time.Minute).Err(); err != nil {
-			log.Error("set expire fail: %v", err)
-		}
-	}
+	}()
 
 	return append(videos, dbVd...), nil
 }
@@ -95,6 +87,13 @@ func IncreaseVideoFavoriteCount(ctx context.Context, id uint, count int) error {
 		log.Errorf("increase video favorite count fail:%v", res.Error)
 		return ErrDatabase
 	}
+	n, err := rdb.Exists(ctx, fmt.Sprintf("video:%d", id)).Result()
+	if err != nil {
+		log.Errorf("check video existed in cache fail:%v", err)
+	}
+	if n == 0 {
+		return nil
+	}
 	if err := rdb.HIncrBy(ctx, fmt.Sprintf("video:%d", id), "FavoriteCount", int64(count)).Err(); err != nil {
 		log.Errorf("increase video favorite count in cache fail:%v", err)
 		return ErrDatabase
@@ -107,6 +106,13 @@ func IncreaseVideoCommentCount(ctx context.Context, id uint, count int) error {
 	if res.Error != nil {
 		log.Errorf("increase video comment count fail:%v", res.Error)
 		return ErrDatabase
+	}
+	n, err := rdb.Exists(ctx, fmt.Sprintf("video:%d", id)).Result()
+	if err != nil {
+		log.Errorf("check video existed in cache fail:%v", err)
+	}
+	if n == 0 {
+		return nil
 	}
 	if err := rdb.HIncrBy(ctx, fmt.Sprintf("video:%d", id), "CommentCount", int64(count)).Err(); err != nil {
 		log.Errorf("increase video comment count in cache fail:%v", err)

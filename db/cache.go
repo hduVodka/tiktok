@@ -2,9 +2,11 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"github.com/redis/go-redis/v9"
 	"tiktok/log"
 	"tiktok/models"
+	"tiktok/utils"
 	"time"
 )
 
@@ -29,8 +31,8 @@ func CacheInit() {
 	}
 }
 
-// UpdateCache 延时双删
-func UpdateCache(ctx context.Context, key string, dbFunc func() error) error {
+// updateCache 延时双删
+func updateCache(ctx context.Context, key string, dbFunc func() error) error {
 	if err := rdb.Del(ctx, key).Err(); err != nil {
 		return err
 	}
@@ -43,4 +45,23 @@ func UpdateCache(ctx context.Context, key string, dbFunc func() error) error {
 		}
 	})
 	return nil
+}
+
+func setHashCache[T any](ctx context.Context, key string, val T, expire time.Duration) {
+	if _, err := rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		pipe.HSet(ctx, key, val)
+		pipe.Expire(ctx, fmt.Sprintf(key, val), expireTime)
+		return nil
+	}); err != nil {
+		log.Errorf("set cache fail: %v", err)
+	}
+}
+
+func getHashCache[T any](ctx context.Context, key string) *T {
+	mp, err := rdb.HGetAll(ctx, key).Result()
+	if err != nil {
+		log.Errorf("get cache fail:%v", err)
+		return nil
+	}
+	return utils.Scan[T](mp)
 }
