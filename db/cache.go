@@ -1,9 +1,12 @@
 package db
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"sync"
 	"tiktok/log"
 	"tiktok/models"
 	"tiktok/utils"
@@ -64,4 +67,43 @@ func getHashCache[T any](ctx context.Context, key string) *T {
 		return nil
 	}
 	return utils.Scan[T](mp)
+}
+
+// the following 2 functions is used to store and get an object that will not be changed in redis
+// objects will be serialized and deserialized with gob
+
+func setStaticCache(ctx context.Context, key string, val any, expireTime time.Duration) {
+	buf := new(bytes.Buffer)
+	if err := gob.NewEncoder(buf).Encode(val); err != nil {
+		log.Error("encode fail: ", err)
+		return
+	}
+	if err := rdb.Set(ctx, key, buf.Bytes(), expireTime).Err(); err != nil {
+		log.Error("set cache fail: ", err)
+	}
+}
+
+// val should be a pointer
+func getStaticCache(ctx context.Context, key string, val any) {
+	buf, err := rdb.Get(ctx, key).Bytes()
+	if err != nil {
+		log.Error("get cache fail: ", err)
+	}
+	if err := gob.NewDecoder(bytes.NewReader(buf)).Decode(val); err != nil {
+		log.Error("decode fail: ", err)
+	}
+}
+
+func groupQuery[T any, P uint | string](ctx context.Context, f func(ctx context.Context, id P) *T, ids []P) []T {
+	res := make([]T, len(ids))
+	var wg sync.WaitGroup
+	wg.Add(len(ids))
+	for i, id := range ids {
+		go func(i int, id P) {
+			res[i] = *f(ctx, id)
+			wg.Done()
+		}(i, id)
+	}
+	wg.Wait()
+	return res
 }
