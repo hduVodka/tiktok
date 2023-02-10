@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"tiktok/db"
 	"tiktok/dto"
 	"tiktok/models"
 	"tiktok/service/interactive"
@@ -15,26 +16,28 @@ type CommentListResp struct {
 }
 
 func CommentAction(c *gin.Context) {
+	var content string
+	user := new(models.User)
 	userId := c.GetUint("userId")
-
 	actionType, err := strconv.Atoi(c.Query("action_type"))
 	if err != nil {
 		c.JSON(http.StatusOK, Resp{
-			-1,
-			ErrInvalidParams,
+			StatusCode: -1,
+			StatusMsg:  ErrInvalidParams,
 		})
 		return
 	}
-	videoId, err := strconv.Atoi(c.Query("video_id"))
+	videoId, err := strconv.ParseUint(c.Query("video_id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusOK, Resp{
-			-1,
-			ErrInvalidParams,
+			StatusCode: -1,
+			StatusMsg:  ErrInvalidParams,
 		})
 		return
 	}
-
-	content := c.Query("content")
+	if actionType == 1 {
+		content = c.Query("comment_text")
+	}
 
 	comment := &models.Comment{
 		VideoID: uint(videoId),
@@ -43,15 +46,36 @@ func CommentAction(c *gin.Context) {
 	}
 	if err := interactive.CommentAction(c, comment, actionType); err != nil {
 		c.JSON(http.StatusOK, Resp{
-			-1,
-			err.Error(),
+			StatusCode: -1,
+			StatusMsg:  err.Error(),
+		})
+		return
+	}
+	if content != "" {
+		user = db.GetUser(userId)
+		c.JSON(http.StatusOK, gin.H{
+			"status_code": 0,
+			"status_msg":  "string",
+			"comment": dto.Comment{
+				Id: comment.ID,
+				User: dto.User{
+					Id:            user.ID,
+					Name:          user.Username,
+					FollowCount:   user.FollowCount,
+					FollowerCount: user.FollowerCount,
+					IsFollow:      true,
+				},
+				Content:    comment.Content,
+				CreateDate: strconv.FormatInt(comment.CreateTime, 10),
+			},
 		})
 	} else {
 		c.JSON(http.StatusOK, Resp{
-			0,
-			"操作成功",
+			StatusCode: 0,
+			StatusMsg:  "ok",
 		})
 	}
+
 }
 
 func CommentList(c *gin.Context) {

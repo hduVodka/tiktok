@@ -3,6 +3,7 @@ package interactive
 import (
 	"context"
 	"errors"
+	"strconv"
 	"tiktok/db"
 	"tiktok/dto"
 	"tiktok/models"
@@ -12,10 +13,15 @@ import (
 func CommentAction(ctx context.Context, comment *models.Comment, actionType int) error {
 	// 评论
 	if actionType == 1 {
-		if err := db.InsertComment(comment); err != nil {
+		var count int64
+		var err error
+		if count, err = db.InsertComment(comment); err != nil {
 			return errors.New("评论失败")
 		}
-		return db.IncreaseVideoCommentCount(ctx, comment.VideoID, 1)
+		if count == 0 {
+			return db.IncreaseVideoCommentCount(ctx, comment.VideoID, 1)
+		}
+		return nil
 	} else if actionType == 2 {
 		if err := db.DeleteComment(comment); err != nil {
 			return errors.New("取消评论失败")
@@ -39,17 +45,18 @@ func CommentModels2dto(ctx context.Context, models []models.Comment) []dto.Comme
 	userId := ctx.Value("userId").(uint)
 	dtoList := make([]dto.Comment, len(models))
 	for i, v := range models {
+		user := db.GetUserMessage(v)
 		dtoList[i] = dto.Comment{
 			Id: v.ID,
 			User: dto.User{
-				Id:            v.User.ID,
-				Name:          v.User.Username,
-				FollowCount:   v.User.FollowCount,
-				FollowerCount: v.User.FollowerCount,
+				Id:            user.ID,
+				Name:          user.Username,
+				FollowCount:   user.FollowCount,
+				FollowerCount: user.FollowerCount,
 				IsFollow:      db.IsFollow(ctx, userId, v.UserID),
 			},
 			Content:    v.Content,
-			CreateDate: v.CreatedAt.Format("01-02"),
+			CreateDate: strconv.FormatInt(v.CreateTime, 10),
 		}
 	}
 	return dtoList

@@ -39,12 +39,14 @@ func TestComment_DeleteComment(t *testing.T) {
 }
 
 func TestComment_GetCommentListByVideoId(t *testing.T) {
-	var videoId uint = 5
+	var videoId uint = 8
 	comments, err := GetCommentListByVideoId(videoId)
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(comments)
+	for _, v := range comments {
+		fmt.Println(v.User)
+	}
 }
 
 func TestComment_CountCommentById(t *testing.T) {

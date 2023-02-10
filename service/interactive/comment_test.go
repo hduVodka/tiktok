@@ -33,12 +33,14 @@ func TestCommentAction(t *testing.T) {
 }
 
 func TestCommentList(t *testing.T) {
-	var ctx context.Context
-	lis, err := CommentList(ctx, 1)
+	var n uint = 8
+	ctx := context.Background()
+	lis, err := CommentList(ctx, n)
 	if err != nil {
 		t.Error(err)
 	}
-	for i := 0; i < len(lis); i++ {
-		fmt.Printf("%#v", lis[i])
-	}
+	//for i := 0; i < len(lis); i++ {
+	//	fmt.Printf("%#v", lis[i])
+	//}
+	fmt.Println(lis)
 }
