@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -14,45 +15,13 @@ const feedPageSize = 30
 const expireTime = 5 * time.Minute
 
 func GetFeedByTime(ctx context.Context, t time.Time) ([]models.Video, error) {
-	// get ids from cache
 	strIds, err := rdb.Do(ctx, "ZRANGE", "video:feed", t.UnixMilli(), 0, "BYSCORE", "REV", "limit", 0, feedPageSize).StringSlice()
 	if err != nil {
 		log.Errorf("get feed ids from cache fail:%v", err)
 		return nil, ErrDatabase
 	}
-
-	// get video from cache
-	var toGetFromDB []string
-	var videos []models.Video
-	for _, v := range strIds {
-		vd := getHashCache[models.Video](ctx, fmt.Sprintf("video:%s", v))
-		if vd.ID == 0 {
-			toGetFromDB = append(toGetFromDB, v)
-			continue
-		}
-		videos = append(videos, *vd)
-	}
-
-	if len(toGetFromDB) == 0 {
-		return videos, nil
-	}
-
-	// get uncached video from db
-	var dbVd []models.Video
-	res := db.Where("id in ?", toGetFromDB).Find(&dbVd)
-	if res.Error != nil {
-		log.Errorf("get feed from db fail:%v", res.Error)
-		return nil, ErrDatabase
-	}
-
-	go func() {
-		// set cache
-		for _, v := range dbVd {
-			setHashCache(ctx, fmt.Sprintf("video:%d", v.ID), v, expireTime)
-		}
-	}()
-
-	return append(videos, dbVd...), nil
+	videos := groupQuery(ctx, GetVideoById[string], strIds)
+	return videos, nil
 }
 
 func InsertVideo(ctx context.Context, video *models.Video) error {
@@ -71,13 +40,27 @@ func InsertVideo(ctx context.Context, video *models.Video) error {
 	return nil
 }
 
-func GetVideoListById(id uint) ([]models.Video, error) {
+func GetVideoListById(ctx context.Context, id uint) ([]models.Video, error) {
+	var ids []uint
+
+	getStaticCache(ctx, fmt.Sprintf("video:list:%d", id), &ids)
+	if len(ids) != 0 {
+		return groupQuery(ctx, GetVideoById[uint], ids), nil
+	}
+
 	var list []models.Video
 	res := db.Where("author_id = ?", id).Find(&list)
 	if res.Error != nil {
 		log.Errorf("get video list fail:%v", res.Error)
 		return nil, ErrDatabase
 	}
+
+	// set cache
+	for _, v := range list {
+		ids = append(ids, v.ID)
+	}
+	setStaticCache(ctx, fmt.Sprintf("video:list:%d", id), ids, expireTime)
+
 	return list, nil
 }
 
@@ -119,4 +102,22 @@ func IncreaseVideoCommentCount(ctx context.Context, id uint, count int) error {
 		return ErrDatabase
 	}
 	return nil
+}
+
+func GetVideoById[T uint | string](ctx context.Context, id T) *models.Video {
+	var vd *models.Video
+	vd = getHashCache[models.Video](ctx, fmt.Sprintf("video:%d", id))
+	if vd.ID != 0 {
+		return vd
+	}
+	res := db.First(vd, id)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		log.Errorf("get video by id fail:%v", res.Error)
+		return nil
+	}
+	setHashCache(ctx, fmt.Sprintf("video:%d", id), vd, expireTime)
+	return vd
 }

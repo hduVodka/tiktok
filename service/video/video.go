@@ -75,7 +75,7 @@ func Publish(ctx context.Context, fh *multipart.FileHeader, ext string, title st
 
 func PublishList(ctx context.Context) ([]dto.Video, error) {
 	var userId = ctx.Value("userId").(uint)
-	videos, err := db.GetVideoListById(userId)
+	videos, err := db.GetVideoListById(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
